@@ -22,15 +22,16 @@ export interface Fund {
 }
 
 /**
- * Créer un nouveau fond et déclencher automatiquement :
- * 1. Détection des filings existants
- * 2. Parsing des filings
- * 3. Vérification des valeurs
+ * Créer un nouveau fond (responsabilité unique : création du fund)
  */
 export async function createFund(body: unknown) {
-  const input = CreateFundInput.parse(body);
+  console.log("[DEBUG] createFund called with body:", JSON.stringify(body));
   
-  // 1. Vérifier si le fond existe déjà
+  // Validation
+  const input = CreateFundInput.parse(body);
+  console.log("[DEBUG] Input validated:", input);
+  
+  // Vérifier si le fond existe déjà
   const { data: existing, error: checkError } = await supabase
     .from("funds")
     .select("id")
@@ -45,7 +46,7 @@ export async function createFund(body: unknown) {
     throw new Error(`Fund with CIK ${input.cik} already exists`);
   }
 
-  // 2. Créer le fond
+  // Créer le fond
   const { data: fund, error: insertError } = await supabase
     .from("funds")
     .insert({
@@ -57,23 +58,33 @@ export async function createFund(body: unknown) {
     .select()
     .single();
 
-  if (insertError) throw insertError;
+  if (insertError) {
+    throw insertError;
+  }
 
-  console.log(`Fund created: ${fund.name} (CIK: ${fund.cik})`);
+  console.log(`[SUCCESS] Fund created: ${fund.name} (CIK: ${fund.cik})`);
 
-  // 3. Déclencher automatiquement la détection des filings
-  await discoverAndParseFilings(fund.id, fund.cik);
+  // Découvrir automatiquement les filings (asynchrone, non bloquant)
+  discoverFilings(fund.id, fund.cik)
+    .then(result => {
+      console.log(`[SUCCESS] Discovery completed: ${result.discovered} filings discovered`);
+    })
+    .catch(error => {
+      console.error(`[ERROR] Discovery failed:`, error);
+    });
 
   return {
     fund,
-    message: "Fund created and filings discovery started",
+    message: "Fund created successfully. Filings discovery started.",
   };
 }
 
 /**
- * Découvrir et parser automatiquement tous les filings d'un fond
+ * Découvrir les filings d'un fond (appelée automatiquement lors de la création)
+ * Découvre les filings depuis EDGAR et les insère en base
+ * Le parsing se fait automatiquement via EventBridge
  */
-export async function discoverAndParseFilings(fundId: number, cik: string) {
+async function discoverFilings(fundId: number, cik: string) {
   console.log(`Discovering filings for fund ${fundId} (CIK: ${cik})`);
 
   // 1. Récupérer les filings depuis EDGAR
@@ -148,11 +159,12 @@ export async function discoverAndParseFilings(fundId: number, cik: string) {
       formType = "13F-HR/A";
     }
 
+    // Insérer le filing avec le CIK (important pour les requêtes directes par CIK)
     const { data: filing, error: insertError } = await supabase
       .from("fund_filings")
       .insert({
         fund_id: fundId,
-        cik: cik,
+        cik: cik, // Toujours inclure le CIK pour permettre les requêtes directes
         accession_number: accessionNumber,
         form_type: formType,
         filing_date: extractDate(entry.updated),
@@ -165,7 +177,7 @@ export async function discoverAndParseFilings(fundId: number, cik: string) {
 
     discoveredFilings.push(filing);
 
-    // 3. Déclencher le parser via EventBridge
+    // Déclencher le parser via EventBridge
     await eventBridge.send(new PutEventsCommand({
       Entries: [{
         Source: "adel.signals",
@@ -189,6 +201,39 @@ export async function discoverAndParseFilings(fundId: number, cik: string) {
     filings: discoveredFilings,
   };
 }
+
+/**
+ * Parser un filing spécifique (déclenche le parser via EventBridge)
+ * Responsabilité unique : déclencher le parsing d'un filing
+ */
+export async function parseFiling(filingId: number, fundId: number, cik: string, accessionNumber: string, filingUrl: string) {
+  console.log(`[DEBUG] Parsing filing ${filingId} (accession: ${accessionNumber})`);
+
+  // Déclencher le parser via EventBridge
+  await eventBridge.send(new PutEventsCommand({
+    Entries: [{
+      Source: "adel.signals",
+      DetailType: "13F Discovered",
+      Detail: JSON.stringify({
+        fund_id: fundId,
+        filing_id: filingId,
+        cik: cik,
+        accession_number: accessionNumber,
+        filing_url: filingUrl,
+      }),
+      EventBusName: EVENT_BUS_NAME,
+    }],
+  }));
+
+  console.log(`[SUCCESS] Event published for filing ${accessionNumber}`);
+
+  return {
+    filing_id: filingId,
+    accession_number: accessionNumber,
+    message: "Parsing event published successfully.",
+  };
+}
+
 
 /**
  * Lister tous les fonds

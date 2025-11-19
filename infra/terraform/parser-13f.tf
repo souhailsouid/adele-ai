@@ -13,7 +13,7 @@ resource "aws_lambda_function" "parser_13f" {
   runtime       = "python3.11"
   handler       = "index.handler"
   filename      = "${path.module}/../../workers/parser-13f.zip"
-  timeout       = 300  # 5 minutes pour parsing
+  timeout       = 900  # 15 minutes pour parsing (fichiers volumineux comme BlackRock)
   memory_size   = 512
 
   depends_on = [aws_cloudwatch_log_group.parser_13f]

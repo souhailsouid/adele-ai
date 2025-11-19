@@ -1,18 +1,14 @@
 #!/usr/bin/env python3
 """
-Script pour parser manuellement les filings 13F existants dans Supabase
+Script pour parser les filings 13F d'un fund spécifique
 Utilise le même code que le Lambda parser-13f
 """
 
 import os
 import sys
-import json
 import requests
 from bs4 import BeautifulSoup
 from supabase import create_client, Client
-
-# Ajouter le chemin du parser pour importer les fonctions
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../workers/parser-13f/src'))
 
 # Charger .env depuis la racine du projet si disponible
 try:
@@ -37,13 +33,12 @@ def parse_13f_file(content: str, url: str) -> list:
     holdings = []
     
     try:
-        # Parser le XML avec BeautifulSoup (html.parser fonctionne aussi pour XML)
         soup = BeautifulSoup(content, "html.parser")
         
         # Structure 13F XML: <infoTable> contient chaque holding (avec namespace)
         info_tables = soup.find_all("infotable") or soup.find_all("n1:infotable")
         
-        print(f"Found {len(info_tables)} holdings in XML")
+        print(f"   Found {len(info_tables)} holdings in XML")
         
         for table in info_tables:
             # Extraire les champs (camelCase dans le XML)
@@ -65,13 +60,11 @@ def parse_13f_file(content: str, url: str) -> list:
             cusip = cusip_elem.get_text(strip=True) if cusip_elem else ""
             
             # Valeurs numériques
-            # NOTE: Format SEC 13F - valeurs en milliers de dollars
-            # Exception: ARK (CIK 0001697748) utilise parfois des valeurs en dollars
             try:
                 value_text = value_elem.get_text(strip=True) if value_elem else "0"
                 value = int(float(value_text.replace(",", ""))) if value_text else 0
                 
-                # Détecter le format (dollars vs milliers) - même logique que le parser Lambda
+                # Détecter le format (dollars vs milliers)
                 shares_text = ssh_prnamt_elem.get_text(strip=True) if ssh_prnamt_elem else "0"
                 shares = int(float(shares_text.replace(",", ""))) if shares_text else 0
                 
@@ -87,8 +80,9 @@ def parse_13f_file(content: str, url: str) -> list:
                 value_usd = 0
             
             try:
-                shares_text = ssh_prnamt_elem.get_text(strip=True) if ssh_prnamt_elem else "0"
-                shares = int(float(shares_text.replace(",", ""))) if shares_text else 0
+                if shares == 0:
+                    shares_text = ssh_prnamt_elem.get_text(strip=True) if ssh_prnamt_elem else "0"
+                    shares = int(float(shares_text.replace(",", ""))) if shares_text else 0
             except:
                 shares = 0
             
@@ -107,41 +101,63 @@ def parse_13f_file(content: str, url: str) -> list:
                 "type": holding_type
             })
         
-        print(f"Successfully parsed {len(holdings)} holdings")
+        print(f"   Successfully parsed {len(holdings)} holdings")
         
     except Exception as e:
-        print(f"Error parsing XML: {str(e)}")
+        print(f"   ❌ Error parsing XML: {str(e)}")
         import traceback
         traceback.print_exc()
         raise
     
     return holdings
 
-def extract_ticker(name: str) -> str:
-    """Extraire le ticker depuis le nom"""
-    return name.upper()[:10] if name else ""
-
 def main():
-    print("🔍 Récupération des filings non parsés depuis Supabase...")
+    if len(sys.argv) < 2:
+        print("Usage: python3 parse-fund-filings.py <CIK>")
+        print("Example: python3 parse-fund-filings.py 0001350694")
+        sys.exit(1)
+    
+    cik = sys.argv[1]
+    
+    print(f"🔍 Parsing filings for CIK: {cik}")
+    print("")
     
     # Initialiser Supabase
     supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
     
-    # Récupérer tous les filings (DISCOVERED ou PARSED mais sans holdings)
-    # D'abord, récupérer tous les filings
-    result = supabase.table("fund_filings")\
-        .select("id, fund_id, accession_number, form_type, filing_date, status, funds!inner(cik, name)")\
+    # Récupérer le fund
+    fund_result = supabase.table("funds").select("*").eq("cik", cik).single().execute()
+    
+    if not fund_result.data:
+        print(f"❌ Fund avec CIK {cik} non trouvé!")
+        sys.exit(1)
+    
+    fund = fund_result.data
+    fund_id = fund["id"]
+    fund_name = fund["name"]
+    
+    print(f"📋 Fund: {fund_name} (ID: {fund_id})")
+    print("")
+    
+    # Récupérer tous les filings de ce fund
+    filings_result = supabase.table("fund_filings")\
+        .select("*")\
+        .eq("fund_id", fund_id)\
         .order("filing_date", desc=True)\
         .execute()
     
-    all_filings = result.data
-    print(f"📋 Trouvé {len(all_filings)} filings au total")
+    filings = filings_result.data
+    print(f"📄 Trouvé {len(filings)} filings")
+    print("")
+    
+    if len(filings) == 0:
+        print("✅ Aucun filing à parser")
+        return
     
     # Vérifier lesquels n'ont pas de holdings
     filings_to_parse = []
-    for filing in all_filings:
+    for filing in filings:
         filing_id = filing["id"]
-        # Vérifier si ce filing a des holdings
         holdings_result = supabase.table("fund_holdings")\
             .select("id")\
             .eq("filing_id", filing_id)\
@@ -149,46 +165,69 @@ def main():
             .execute()
         
         if len(holdings_result.data) == 0:
-            # Pas de holdings, à parser
             filings_to_parse.append(filing)
     
-    print(f"📋 {len(filings_to_parse)} filings sans holdings à parser\n")
+    print(f"📋 {len(filings_to_parse)} filings sans holdings à parser")
+    print("")
     
     if len(filings_to_parse) == 0:
         print("✅ Tous les filings ont déjà des holdings!")
         return
     
-    filings = filings_to_parse
-    
     # Parser chaque filing
-    for filing in filings:
+    success_count = 0
+    error_count = 0
+    
+    for filing in filings_to_parse:
         filing_id = filing["id"]
-        fund_id = filing["fund_id"]
         accession_number = filing["accession_number"]
-        cik = filing["funds"]["cik"]
-        fund_name = filing["funds"]["name"]
+        form_type = filing.get("form_type", "13F-HR")
+        filing_date = filing.get("filing_date", "N/A")
         
-        print(f"\n📄 Parsing filing: {accession_number}")
-        print(f"   Fund: {fund_name} (CIK: {cik})")
+        print(f"📄 Parsing: {accession_number} ({form_type}, {filing_date})")
         
         try:
-            # Construire l'URL XML (fichier brut, pas la version XSL)
+            # Construire l'URL XML
             accession_no_dashes = accession_number.replace("-", "")
             cik_clean = cik.lstrip("0")
-            xml_url = f"https://www.sec.gov/Archives/edgar/data/{cik_clean}/{accession_no_dashes}/infotable.xml"
+            base_url = f"https://www.sec.gov/Archives/edgar/data/{cik_clean}/{accession_no_dashes}"
             
-            print(f"   URL: {xml_url}")
-            
-            # Télécharger le fichier XML
             headers = {"User-Agent": "ADEL AI (contact@adel.ai)"}
+            
+            # Essayer d'abord infotable.xml (format standard)
+            xml_url = f"{base_url}/infotable.xml"
             response = requests.get(xml_url, headers=headers, timeout=30)
-            response.raise_for_status()
+            
+            # Si 404, chercher le fichier XML dans le répertoire
+            if response.status_code == 404:
+                print(f"   infotable.xml not found, searching directory...")
+                dir_response = requests.get(f"{base_url}/", headers=headers, timeout=30)
+                if dir_response.status_code == 200:
+                    soup_dir = BeautifulSoup(dir_response.text, "html.parser")
+                    links = soup_dir.find_all("a", href=True)
+                    xml_files = [l.get("href") for l in links if ".xml" in l.get("href", "").lower() and ("13f" in l.get("href", "").lower() or "table" in l.get("href", "").lower())]
+                    if xml_files:
+                        xml_file = xml_files[0].lstrip("/")
+                        xml_url = f"https://www.sec.gov{xml_files[0]}" if xml_files[0].startswith("/") else f"{base_url}/{xml_file}"
+                        print(f"   Found XML file: {xml_url}")
+                        response = requests.get(xml_url, headers=headers, timeout=30)
+                    else:
+                        raise Exception(f"No 13F XML file found in directory {base_url}")
+                else:
+                    response.raise_for_status()
+            else:
+                response.raise_for_status()
             
             # Parser le XML
             holdings = parse_13f_file(response.text, xml_url)
             
             if len(holdings) == 0:
                 print(f"   ⚠️  Aucun holding trouvé, skip")
+                # Marquer comme PARSED quand même (peut être un filing vide)
+                supabase.table("fund_filings").update({
+                    "status": "PARSED",
+                    "updated_at": "now()"
+                }).eq("id", filing_id).execute()
                 continue
             
             # Insérer les holdings
@@ -197,7 +236,7 @@ def main():
                 supabase.table("fund_holdings").insert({
                     "fund_id": fund_id,
                     "filing_id": filing_id,
-                    "cik": cik,  # Ajouter le CIK pour simplifier les requêtes
+                    "cik": cik,
                     "ticker": holding["ticker"],
                     "cusip": holding["cusip"],
                     "shares": holding["shares"],
@@ -212,6 +251,7 @@ def main():
             }).eq("id", filing_id).execute()
             
             print(f"   ✅ Parsing réussi! {len(holdings)} holdings insérés")
+            success_count += 1
             
         except Exception as e:
             print(f"   ❌ Erreur: {str(e)}")
@@ -223,9 +263,25 @@ def main():
                 }).eq("id", filing_id).execute()
             except:
                 pass
+            error_count += 1
             continue
     
-    print(f"\n✅ Terminé! {len(filings)} filings traités")
+    print("")
+    print("═══════════════════════════════════════════════════════════")
+    print(f"✅ TERMINÉ")
+    print(f"   Succès: {success_count}")
+    print(f"   Erreurs: {error_count}")
+    print(f"   Total: {len(filings_to_parse)}")
+    print("═══════════════════════════════════════════════════════════")
+    
+    # Vérifier le résultat
+    holdings_result = supabase.table("fund_holdings")\
+        .select("id", count="exact")\
+        .eq("fund_id", fund_id)\
+        .execute()
+    
+    print(f"")
+    print(f"📊 Holdings totaux pour ce fund: {holdings_result.count}")
 
 if __name__ == "__main__":
     main()

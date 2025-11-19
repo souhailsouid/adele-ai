@@ -1,36 +1,40 @@
 # Scripts Utilitaires
 
-## parse-existing-filings.py
+## Scripts de Maintenance
 
-Parse manuellement tous les filings 13F existants dans Supabase qui ont le status "DISCOVERED".
+### reparse-failed-filings.sh
 
-### Utilisation
+Re-déclencher le parsing des filings en statut `FAILED` pour un fund donné.
 
+**Usage:**
 ```bash
-cd /Users/souhailsouid/startup/personamy/backend
-
-# Définir les variables d'environnement (ou les modifier dans le script)
-export SUPABASE_URL="https://your-project.supabase.co"
-export SUPABASE_SERVICE_KEY="your-service-key"
-
-# Installer les dépendances si nécessaire
-pip install requests beautifulsoup4 supabase
-
-# Exécuter le script
-python3 scripts/parse-existing-filings.py
+./scripts/reparse-failed-filings.sh <fund_id>
 ```
 
-### Ce que fait le script
+### fix-holdings-cik.sh
 
-1. Récupère tous les filings avec `status = 'DISCOVERED'` depuis Supabase
-2. Pour chaque filing :
-   - Construit l'URL du fichier XML depuis l'accession number
-   - Télécharge le fichier XML depuis EDGAR
-   - Parse les holdings
-   - Insère dans `fund_holdings`
-   - Met à jour le status à "PARSED"
+Corriger les holdings existants qui ont un CIK `NULL` (pour les données créées avant l'ajout du champ CIK).
 
-### Résultat
+**Usage:**
+```bash
+./scripts/fix-holdings-cik.sh
+```
 
-Après exécution, tous les filings existants seront parsés et les holdings seront dans `fund_holdings`.
+## Scripts d'Analyse
+
+### analyze-ark-positions.py
+
+Analyse les positions d'ARK Investment Management.
+
+### analyse-complete-nvda-pltr.py
+
+Analyse complète des positions NVDA et PLTR.
+
+### check-ark-status.py
+
+Vérifier le statut des filings et holdings d'ARK.
+
+## Note
+
+Les scripts d'ajout de funds (`add-*-fund.py`) ont été supprimés car ils sont remplacés par l'API `POST /funds` qui gère automatiquement la découverte et le parsing.
 

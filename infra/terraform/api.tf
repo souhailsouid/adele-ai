@@ -149,6 +149,7 @@ resource "aws_apigatewayv2_route" "get_fund_filings" {
   authorizer_id      = aws_apigatewayv2_authorizer.jwt.id
 }
 
+
 # Stage prod
 resource "aws_apigatewayv2_stage" "prod" {
   api_id      = aws_apigatewayv2_api.http.id
