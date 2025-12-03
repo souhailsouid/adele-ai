@@ -12,7 +12,10 @@ dotenv.config();
 
 describe('Unusual Whales - Expirations[] Integration Tests', () => {
   let repository: UnusualWhalesRepository;
-  const apiKey = process.env.UNUSUAL_WHALES_API_KEY || '925866f5-e97f-459d-850d-5d5856fef716';
+  const apiKey = process.env.UNUSUAL_WHALES_API_KEY;
+  if (!apiKey) {
+    throw new Error('UNUSUAL_WHALES_API_KEY environment variable is required');
+  }
 
   beforeAll(() => {
     const client = new ApiClientService({

@@ -20,6 +20,8 @@ dist/
 !terraform.tfvars.example
 credentials.json
 credentials.json.example
+README_SCRIPTS.md
+scripts/start-local-server.sh
 
 # Terraform
 .terraform/
@@ -41,4 +43,7 @@ Thumbs.db
 
 # Logs
 *.log
+
 logs/
+
+
