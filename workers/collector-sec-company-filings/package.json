@@ -1,0 +1,23 @@
+{
+  "name": "collector-sec-company-filings",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Lambda pour découvrir automatiquement les filings SEC des entreprises (8-K, 10-K, 10-Q, Form 4, etc.)",
+  "main": "dist/index.cjs",
+  "scripts": {
+    "build": "node ./scripts/build.mjs",
+    "zip": "cd dist && zip -r ../collector-sec-company-filings.zip .",
+    "bundle": "npm run build && npm run zip"
+  },
+  "dependencies": {
+    "@aws-sdk/client-eventbridge": "^3.700.0",
+    "@supabase/supabase-js": "^2.39.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.130",
+    "@types/node": "^20.11.0",
+    "esbuild": "^0.19.12",
+    "typescript": "^5.3.3"
+  }
+}
+

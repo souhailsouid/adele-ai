@@ -13,7 +13,7 @@ variable "region" {
 
 variable "frontend_allowed_origins" {
   type    = list(string)
-  default = ["http://localhost:3000"]
+  default = ["http://localhost:3000", "https://main.d15muhyy3o82qt.amplifyapp.com"]
 }
 
 variable "openai_api_key" {
@@ -44,6 +44,20 @@ variable "scrapecreators_api_key" {
 variable "coinglass_api_key" {
   type        = string
   description = "CoinGlass API Key"
+  sensitive   = true
+  default     = ""
+}
+
+variable "unusual_whales_api_key" {
+  type        = string
+  description = "Unusual Whales API Key for ticker activity service"
+  sensitive   = true
+  default     = ""
+}
+
+variable "fmp_api_key" {
+  type        = string
+  description = "Financial Modeling Prep API Key for ticker quotes"
   sensitive   = true
   default     = ""
 }

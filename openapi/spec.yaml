@@ -45,34 +45,6 @@ paths:
       responses:
         "200": { description: Started }
 
-  /campaigns:
-    post:
-      summary: Create campaign (pre-fills from org snapshot unless overridden)
-      security: [{ cognitoUserPool: [] }]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: { $ref: '#/components/schemas/CreateCampaignInput' }
-      responses:
-        "200": { description: Created }
-
-  /campaigns/{id}:
-    patch:
-      summary: Update campaign
-      security: [{ cognitoUserPool: [] }]
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema: { type: string }
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: { $ref: '#/components/schemas/UpdateCampaignInput' }
-      responses:
-        "200": { description: OK }
 
 components:
   securitySchemes:
@@ -106,25 +78,3 @@ components:
             mode: { type: string, enum: [B2B, B2C] }
             unsubscribe_link_template: { type: string }
             legal_country: { type: string }
-    CreateCampaignInput:
-      type: object
-      required: [org_id, name, language, objective_type, objective_details, target_persona]
-      properties:
-        org_id: { type: string }
-        name: { type: string }
-        language: { type: string, enum: [en, fr, ar] }
-        objective_type: { type: string, enum: [lead_gen, recruiting, other] }
-        objective_details: { type: string }
-        target_persona: { type: string }
-        personalization_focus: { type: string }
-        company_context_source: { type: string, enum: [org_snapshot, custom_override] }
-        company_context:
-          type: object
-          properties:
-            about: { type: string }
-            value_props:
-              type: array
-              items: { type: string }
-    UpdateCampaignInput:
-      allOf:
-        - $ref: '#/components/schemas/CreateCampaignInput'

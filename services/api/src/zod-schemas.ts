@@ -59,11 +59,6 @@ export const EnrichmentSnapshotInput = z.object({
   targetCustomers: z.array(z.string()).optional(),
   pains: z.array(z.string()).optional(),
   competitors: z.array(z.string()).optional(),
-  campaign: z.object({
-    angle: z.string().min(1),
-    talkingPoints: z.array(z.string()),
-    firstMessage: z.string().min(1),
-  }).optional(),
   size: z.object({
     employees: z.number().optional(),
     range: z.string().optional(),
@@ -105,25 +100,3 @@ export const EnrichmentEventInput = z.object({
 
 export type EnrichmentEventInput = z.infer<typeof EnrichmentEventInput>;
 
-/** CAMPAIGNS **/
-export const CreateCampaignInput = z.object({
-  org_id: z.string().min(1),
-  name: z.string().min(1),
-  language: z.enum(["en", "fr", "ar"]),
-  objective_type: z.enum(["lead_gen", "recruiting", "other"]),
-  objective_details: z.string().min(1),
-  target_persona: z.string().min(1),
-  personalization_focus: z.string().optional(),
-  company_context_source: z.enum(["org_snapshot", "custom_override"]).default("org_snapshot"),
-  company_context: z.object({
-    about: z.string().optional(),
-    value_props: z.array(z.string()).optional(),
-  }).optional()
-});
-
-export const UpdateCampaignInput = CreateCampaignInput.partial().extend({
-  status: z.enum(["draft", "ready", "launched"]).optional(),
-});
-
-export type CreateCampaignInput = z.infer<typeof CreateCampaignInput>;
-export type UpdateCampaignInput = z.infer<typeof UpdateCampaignInput>;

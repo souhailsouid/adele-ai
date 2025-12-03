@@ -47,13 +47,25 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
 
     // Exécuter le handler de la route
     console.log("[HANDLER] Executing route handler...");
-    const result = await routeHandler(event);
-    console.log("[HANDLER] Route handler completed successfully");
+    console.log("[HANDLER] Route handler type:", typeof routeHandler);
+    try {
+      const result = await routeHandler(event);
+      console.log("[HANDLER] Route handler completed successfully");
+      console.log("[HANDLER] Result type:", typeof result);
+      console.log("[HANDLER] Result keys:", result ? Object.keys(result) : "null");
+      return {
+        statusCode: 200,
+        body: JSON.stringify(result),
+      };
+    } catch (routeError: any) {
+      console.error("[HANDLER] Route handler threw error:");
+      console.error("[HANDLER] Error name:", routeError?.name);
+      console.error("[HANDLER] Error message:", routeError?.message);
+      console.error("[HANDLER] Error code:", routeError?.code);
+      console.error("[HANDLER] Error stack:", routeError?.stack);
+      throw routeError;
+    }
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify(result),
-    };
   } catch (e: any) {
     console.error("ERROR in handler:", e);
     console.error("Error name:", e?.name);

@@ -149,6 +149,55 @@ resource "aws_lambda_permission" "collector_coinglass_events" {
 }
 
 # ============================================
+# Collector SEC Company Filings
+# ============================================
+resource "aws_cloudwatch_log_group" "collector_sec_company_filings" {
+  name              = "/aws/lambda/${var.project}-${var.stage}-collector-sec-company-filings"
+  retention_in_days = 14
+}
+
+resource "aws_lambda_function" "collector_sec_company_filings" {
+  function_name = "${var.project}-${var.stage}-collector-sec-company-filings"
+  role          = aws_iam_role.collector_role.arn
+  runtime       = "nodejs20.x"
+  handler       = "index.handler"
+  filename      = "${path.module}/../../workers/collector-sec-company-filings/collector-sec-company-filings.zip"
+  timeout       = 300
+  memory_size   = 512
+
+  depends_on = [aws_cloudwatch_log_group.collector_sec_company_filings]
+
+  environment {
+    variables = {
+      SUPABASE_URL        = var.supabase_url
+      SUPABASE_SERVICE_KEY = var.supabase_service_key
+      EVENT_BUS_NAME      = aws_cloudwatch_event_bus.signals.name
+    }
+  }
+}
+
+# Cron: quotidien à 9h UTC (après les filings SEC typiques)
+resource "aws_cloudwatch_event_rule" "collector_sec_company_filings_cron" {
+  name                = "${var.project}-${var.stage}-collector-sec-company-filings-cron"
+  description         = "Déclenche le collector SEC company filings quotidiennement"
+  schedule_expression = "cron(0 9 * * ? *)" # 9h UTC tous les jours
+}
+
+resource "aws_cloudwatch_event_target" "collector_sec_company_filings" {
+  rule      = aws_cloudwatch_event_rule.collector_sec_company_filings_cron.name
+  target_id = "CollectorSECCompanyFilings"
+  arn       = aws_lambda_function.collector_sec_company_filings.arn
+}
+
+resource "aws_lambda_permission" "collector_sec_company_filings_events" {
+  statement_id  = "AllowExecutionFromCloudWatch"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.collector_sec_company_filings.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.collector_sec_company_filings_cron.arn
+}
+
+# ============================================
 # Collector ScrapeCreators
 # ============================================
 resource "aws_cloudwatch_log_group" "collector_scrapecreators" {

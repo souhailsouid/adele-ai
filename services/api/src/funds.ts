@@ -239,13 +239,37 @@ export async function parseFiling(filingId: number, fundId: number, cik: string,
  * Lister tous les fonds
  */
 export async function getFunds() {
-  const { data, error } = await supabase
-    .from("funds")
-    .select("*")
-    .order("created_at", { ascending: false });
+  console.log("[getFunds] Starting query to Supabase");
+  console.log("[getFunds] Supabase client:", supabase ? "initialized" : "NOT INITIALIZED");
+  
+  try {
+    console.log("[getFunds] Executing Supabase query...");
+    const { data, error } = await supabase
+      .from("funds")
+      .select("*")
+      .order("created_at", { ascending: false });
 
-  if (error) throw error;
-  return data;
+    console.log("[getFunds] Query completed. Error:", error ? JSON.stringify(error) : "none");
+    console.log("[getFunds] Data length:", data?.length || 0);
+
+    if (error) {
+      console.error("[getFunds] Supabase error code:", error.code);
+      console.error("[getFunds] Supabase error message:", error.message);
+      console.error("[getFunds] Supabase error details:", JSON.stringify(error));
+      throw error;
+    }
+
+    console.log(`[getFunds] Successfully retrieved ${data?.length || 0} funds`);
+    return data || [];
+  } catch (e: any) {
+    console.error("[getFunds] Exception caught:");
+    console.error("[getFunds] Error name:", e?.name);
+    console.error("[getFunds] Error message:", e?.message);
+    console.error("[getFunds] Error code:", e?.code);
+    console.error("[getFunds] Error stack:", e?.stack);
+    console.error("[getFunds] Full error:", JSON.stringify(e, Object.getOwnPropertyNames(e)));
+    throw e;
+  }
 }
 
 /**

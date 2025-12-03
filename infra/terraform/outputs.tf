@@ -25,3 +25,13 @@ output "supabase_url" {
   value = var.supabase_url
   description = "URL Supabase"
 }
+
+output "unusual_whales_api_url" {
+  value       = "https://api.unusualwhales.com/api"
+  description = "URL de base de l'API Unusual Whales"
+}
+
+output "fmp_api_url" {
+  value       = "https://financialmodelingprep.com/stable"
+  description = "URL de base de l'API Financial Modeling Prep"
+}
