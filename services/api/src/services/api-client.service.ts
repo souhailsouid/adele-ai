@@ -24,7 +24,8 @@ export class ApiClientService {
   async get<T = any>(endpoint: string, params?: Record<string, string | number>): Promise<T> {
     return handleError(async () => {
       const url = this.buildUrl(endpoint, params);
-      logger.debug(`API GET request`, { url: this.sanitizeUrl(url), endpoint });
+      const sanitizedUrl = this.sanitizeUrl(url);
+      logger.debug(`API GET request`, { url: sanitizedUrl, endpoint, params });
 
       const response = await fetch(url, {
         method: 'GET',
@@ -65,7 +66,7 @@ export class ApiClientService {
     // Ajouter l'API key comme query param si nécessaire (seulement si apiKeyHeader est 'apikey')
     if (this.config.apiKeyHeader && this.config.apiKeyHeader.toLowerCase() === 'apikey') {
       const separator = url.includes('?') ? '&' : '?';
-      url = `${url}${separator}apikey=${this.config.apiKey}`;
+      url = `${url}${separator}apikey=${encodeURIComponent(this.config.apiKey)}`;
     }
 
     // Ajouter les params supplémentaires
@@ -73,7 +74,8 @@ export class ApiClientService {
       const paramString = Object.entries(params)
         .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`)
         .join('&');
-      url = `${url}&${paramString}`;
+      const separator = url.includes('?') ? '&' : '?';
+      url = `${url}${separator}${paramString}`;
     }
 
     return url;
@@ -96,6 +98,10 @@ export class ApiClientService {
   }
 
   private async handleResponse<T>(response: Response, endpoint: string): Promise<T> {
+    // Construire l'URL complète pour les messages d'erreur
+    const fullUrl = this.buildUrl(endpoint);
+    const sanitizedUrl = this.sanitizeUrl(fullUrl);
+
     // Gérer les rate limits
     if (response.status === 429) {
       const retryAfter = response.headers.get('Retry-After');
@@ -110,6 +116,7 @@ export class ApiClientService {
       const errorText = await response.text().catch(() => '');
       logger.error(`API error ${response.status}`, {
         endpoint,
+        url: sanitizedUrl,
         status: response.status,
         statusText: response.statusText,
         body: errorText,
@@ -117,18 +124,78 @@ export class ApiClientService {
 
       throw new ExternalApiError(
         this.config.baseUrl,
-        `${response.status} ${response.statusText}: ${errorText}`
+        `${response.status} ${response.statusText}: ${errorText} (URL: ${sanitizedUrl})`
       );
     }
 
     // Parser la réponse
     try {
-      const data = await response.json();
+      // Vérifier le Content-Type pour détecter les fichiers binaires
+      const contentType = response.headers.get('content-type') || '';
+      const isBinary = 
+        contentType.includes('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') ||
+        contentType.includes('application/octet-stream') ||
+        contentType.includes('application/xlsx') ||
+        endpoint.includes('/financial-reports-xlsx');
+
+      if (isBinary) {
+        // Pour les fichiers binaires (XLSX), retourner en base64
+        const arrayBuffer = await response.arrayBuffer();
+        const base64 = Buffer.from(arrayBuffer).toString('base64');
+        return {
+          data: base64,
+          contentType: contentType || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          format: 'base64',
+        } as T;
+      }
+
+      // Pour les réponses JSON normales, cloner la réponse au cas où on aurait besoin de la relire
+      // (par exemple si c'est en fait un fichier binaire)
+      const clonedResponse = response.clone();
+      let data: any;
+      try {
+        data = await response.json();
+      } catch (jsonError) {
+        // Si le parsing JSON échoue et que c'est l'endpoint XLSX, traiter comme binaire
+        if (endpoint.includes('/financial-reports-xlsx') && jsonError instanceof SyntaxError) {
+          const errorMessage = jsonError.message || '';
+          if (errorMessage.includes("Unexpected token 'P'") || errorMessage.includes('PK')) {
+            const arrayBuffer = await clonedResponse.arrayBuffer();
+            const base64 = Buffer.from(arrayBuffer).toString('base64');
+            return {
+              data: base64,
+              contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+              format: 'base64',
+            } as T;
+          }
+        }
+        throw jsonError;
+      }
       
       // Vérifier si l'API retourne une erreur dans le body
       if (data && typeof data === 'object' && 'Error Message' in data) {
         const errorMessage = String((data as any)['Error Message'] || 'Unknown error');
-        throw new ExternalApiError(this.config.baseUrl, errorMessage);
+        throw new ExternalApiError(
+          this.config.baseUrl,
+          `${errorMessage} (URL: ${sanitizedUrl})`
+        );
+      }
+
+      // Pour FMP, vérifier si on reçoit un tableau vide (peut indiquer un endpoint non disponible)
+      // Note: On ne lance pas d'erreur car un tableau vide peut être valide, mais on log un warning
+      // Note: Les endpoints suivants ont été supprimés car non disponibles avec le plan actuel:
+      // - /historical, /income-statement, /balance-sheet, /cash-flow
+      // - /key-metrics, /ratios, /earnings, /insider-trading
+      // - /stock_news, /economic_calendar, /earnings_calendar, /stock-screener
+      const fmpRestrictedEndpoints: string[] = [];
+      
+      if (Array.isArray(data) && data.length === 0 && 
+          fmpRestrictedEndpoints.some(ep => endpoint.includes(ep))) {
+        logger.warn(`Empty array response from FMP API`, {
+          endpoint,
+          url: sanitizedUrl,
+          message: 'This endpoint may require a paid plan or the symbol may not have data',
+        });
       }
 
       return data as T;
@@ -136,9 +203,10 @@ export class ApiClientService {
       if (error instanceof ExternalApiError) {
         throw error;
       }
+      
       throw new ExternalApiError(
         this.config.baseUrl,
-        `Failed to parse response: ${error instanceof Error ? error.message : String(error)}`
+        `Failed to parse response: ${error instanceof Error ? error.message : String(error)} (URL: ${sanitizedUrl})`
       );
     }
   }

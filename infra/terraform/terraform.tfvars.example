@@ -20,3 +20,7 @@ openai_api_key = "sk-..."  # Clé API OpenAI
 # APIs externes (optionnel pour commencer)
 scrapecreators_api_key = ""  # Clé ScrapeCreators (optionnel)
 coinglass_api_key = ""  # Clé CoinGlass (optionnel)
+
+# APIs financières
+unusual_whales_api_key = ""  # Clé API Unusual Whales (https://unusualwhales.com)
+fmp_api_key = ""  # Clé API Financial Modeling Prep (https://financialmodelingprep.com)

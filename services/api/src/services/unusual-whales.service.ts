@@ -963,7 +963,7 @@ export class UnusualWhalesService {
    */
   async getCorrelations(params: CorrelationsQueryParams): Promise<ApiResponse<CorrelationsResponse['data']>> {
     return handleError(async () => {
-      const cacheKey = `uw_correlations_${params.ticker1}_${params.ticker2}_${params.date || 'latest'}`;
+      const cacheKey = `uw_correlations_${params.tickers || 'latest'}`;
       const cached = await this.cache.get<CorrelationsResponse['data']>(cacheKey, 'cache_key');
       if (cached) {
         return { success: true, data: cached, cached: true, count: cached.length, timestamp: new Date().toISOString() };

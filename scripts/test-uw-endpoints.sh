@@ -9,11 +9,19 @@ RED='\033[0;31m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# Token d'accès
-ACCESS_TOKEN="eyJraWQiOiIwekpSMTVhYjBqSk0xdnJmaFBSa0NveGJBaHhnXC9HblhkeU56Y09iRkRyND0iLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiI1MTI5ODBiZS0wMGQxLTcwZmYtNTQ3Zi0zYTA3YzkyMzA3ODIiLCJpc3MiOiJodHRwczpcL1wvY29nbml0by1pZHAuZXUtd2VzdC0zLmFtYXpvbmF3cy5jb21cL2V1LXdlc3QtM19GUURtaHhWMTQiLCJjbGllbnRfaWQiOiJwa3A0aTgyam50dHRoajJjYmlsdHVkZ3ZhIiwib3JpZ2luX2p0aSI6ImI1YmUzYjJjLTJmYTEtNDhhNi05NzE4LWI3MjkzOGMzOGI2MiIsImV2ZW50X2lkIjoiYjk1NWIzZmYtZDFjOS00MDc2LWJlZjQtYjg2Yjk3NWFjNzczIiwidG9rZW5fdXNlIjoiYWNjZXNzIiwic2NvcGUiOiJhd3MuY29nbml0by5zaWduaW4udXNlci5hZG1pbiIsImF1dGhfdGltZSI6MTc2NDc2MzQ4MywiZXhwIjoxNzY0NzY3MDgzLCJpYXQiOjE3NjQ3NjM0ODMsImp0aSI6IjAzNmNiYTE3LTU5MTgtNDhiNS1hZjZmLTA1NzNhYzhjMTk5OCIsInVzZXJuYW1lIjoiNTEyOTgwYmUtMDBkMS03MGZmLTU0N2YtM2EwN2M5MjMwNzgyIn0.zuJ-QeOqgla5z8URh-wFQ4xFIdkuuupBx2JIKgmwHlTnAmjnj8u4KSGu-67Zr47d-aQ_N24n9hRDkC4u84CdXDXxqxGAPlZonvV6iAaNOLs1B3K2AnccX-1pvM7oTdRfOM5qti_Apm490_0lqD9uxh9mstBtMghtPI2d14jqQlIzZjibPmomFI1Mc2pFnTHAc3qAuL01gwGgrzO12y3MvBIZALHkNJRQChjwJFHMd_1O5tLA5U5Dz7tTwbuBsA5RWcRor6KwIM4gKev8k1zNQtcgPVXyY5vKLXINYk9gcKZW18Gkeo1ujfK2q7-ttqET7u6EmYqzlvzsoeswAZkp5Q"
+# Token d'accès (peut être passé via variable d'environnement)
+# Usage: ACCESS_TOKEN="your_token" ./scripts/test-uw-endpoints.sh [API_GATEWAY_URL]
+ACCESS_TOKEN="${ACCESS_TOKEN:-}"
 
 # URL de l'API Gateway (par défaut ou depuis l'argument)
 API_URL="${1:-https://tsdd1sibd1.execute-api.eu-west-3.amazonaws.com/prod}"
+
+# Vérifier que le token est fourni
+if [ -z "$ACCESS_TOKEN" ]; then
+  echo -e "${RED}Erreur: ACCESS_TOKEN est requis${NC}"
+  echo -e "Usage: ACCESS_TOKEN=\"your_token\" ./scripts/test-uw-endpoints.sh [API_GATEWAY_URL]"
+  exit 1
+fi
 
 echo -e "${YELLOW}=== Test des endpoints Unusual Whales ===${NC}"
 echo -e "API URL: ${API_URL}"

@@ -5,8 +5,14 @@
 ### Test de l'API en Production
 
 ```bash
-# Tester tous les endpoints
+# Tester tous les endpoints Ticker Activity
 ./scripts/test-ticker-activity-api.sh "YOUR_ACCESS_TOKEN" TSLA
+
+# Tester tous les endpoints Unusual Whales
+./scripts/test-uw-endpoints.sh
+
+# Tester tous les endpoints FMP
+./scripts/test-fmp-endpoints.sh
 
 # Tester un seul endpoint
 ./scripts/test-single-endpoint.sh "YOUR_ACCESS_TOKEN" "/ticker-activity/TSLA/quote"
@@ -37,7 +43,17 @@ curl http://localhost:3001/ticker-activity/TSLA/quote \
    - Teste un seul endpoint spécifique
    - Utile pour déboguer un problème précis
 
-3. **`scripts/start-local-server.sh`**
+3. **`scripts/test-uw-endpoints.sh`**
+   - Teste tous les endpoints Unusual Whales
+   - Couvre 108+ endpoints (alerts, congress, darkpool, earnings, etfs, etc.)
+   - Usage: `./scripts/test-uw-endpoints.sh [API_GATEWAY_URL]`
+
+4. **`scripts/test-fmp-endpoints.sh`**
+   - Teste tous les endpoints FMP (Financial Modeling Prep)
+   - Couvre 23 endpoints (quote, financial statements, company search, etc.)
+   - Usage: `./scripts/test-fmp-endpoints.sh [API_GATEWAY_URL]`
+
+5. **`scripts/start-local-server.sh`**
    - Lance le serveur local avec toutes les variables d'environnement
    - Configure automatiquement les clés API
 

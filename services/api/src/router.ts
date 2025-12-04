@@ -24,6 +24,7 @@ import {
 } from "./ticker-activity";
 import * as fmp from "./fmp";
 import * as uw from "./unusual-whales";
+import { fmpRoutes } from "./routes/fmp.routes";
 import type { NotificationType } from "./types/unusual-whales/alerts";
 import type {
   InstitutionalHoldingsQueryParams,
@@ -121,13 +122,7 @@ import type {
 } from "./types/unusual-whales/news";
 
 
-type RouteHandler = (event: APIGatewayProxyEventV2) => Promise<any>;
-
-interface Route {
-  method: string;
-  path: string;
-  handler: RouteHandler;
-}
+import type { Route, RouteHandler } from "./routes/types";
 
 // Helper pour parser le body
 function parseBody(event: APIGatewayProxyEventV2): any {
@@ -448,177 +443,8 @@ const routes: Route[] = [
         },
       },
       // ========== FMP API Routes ==========
-      {
-        method: "GET",
-        path: "/fmp/quote/{symbol}",
-        handler: async (event) => {
-          const symbol = getPathParam(event, "symbol");
-          if (!symbol) throw new Error("Missing symbol parameter");
-          const forceRefresh = getQueryParam(event, "force_refresh") === "true";
-          return await fmp.getFMPQuote(symbol, forceRefresh);
-        },
-      },
-      {
-        method: "GET",
-        path: "/fmp/historical-price/{symbol}",
-        handler: async (event) => {
-          const symbol = getPathParam(event, "symbol");
-          if (!symbol) throw new Error("Missing symbol parameter");
-          const period = getQueryParam(event, "period") || "1day";
-          const forceRefresh = getQueryParam(event, "force_refresh") === "true";
-          return await fmp.getFMPHistoricalPrice(symbol, period, forceRefresh);
-        },
-      },
-      {
-        method: "GET",
-        path: "/fmp/income-statement/{symbol}",
-        handler: async (event) => {
-          const symbol = getPathParam(event, "symbol");
-          if (!symbol) throw new Error("Missing symbol parameter");
-          const period = getQueryParam(event, "period") || "annual";
-          const limit = getQueryParam(event, "limit") ? parseInt(getQueryParam(event, "limit")!) : 5;
-          return await fmp.getFMPIncomeStatement(symbol, period, limit);
-        },
-      },
-      {
-        method: "GET",
-        path: "/fmp/balance-sheet/{symbol}",
-        handler: async (event) => {
-          const symbol = getPathParam(event, "symbol");
-          if (!symbol) throw new Error("Missing symbol parameter");
-          const period = getQueryParam(event, "period") || "annual";
-          const limit = getQueryParam(event, "limit") ? parseInt(getQueryParam(event, "limit")!) : 5;
-          return await fmp.getFMPBalanceSheet(symbol, period, limit);
-        },
-      },
-      {
-        method: "GET",
-        path: "/fmp/cash-flow/{symbol}",
-        handler: async (event) => {
-          const symbol = getPathParam(event, "symbol");
-          if (!symbol) throw new Error("Missing symbol parameter");
-          const period = getQueryParam(event, "period") || "annual";
-          const limit = getQueryParam(event, "limit") ? parseInt(getQueryParam(event, "limit")!) : 5;
-          return await fmp.getFMPCashFlow(symbol, period, limit);
-        },
-      },
-      {
-        method: "GET",
-        path: "/fmp/key-metrics/{symbol}",
-        handler: async (event) => {
-          const symbol = getPathParam(event, "symbol");
-          if (!symbol) throw new Error("Missing symbol parameter");
-          const period = getQueryParam(event, "period") || "annual";
-          const limit = getQueryParam(event, "limit") ? parseInt(getQueryParam(event, "limit")!) : 5;
-          return await fmp.getFMPKeyMetrics(symbol, period, limit);
-        },
-      },
-      {
-        method: "GET",
-        path: "/fmp/ratios/{symbol}",
-        handler: async (event) => {
-          const symbol = getPathParam(event, "symbol");
-          if (!symbol) throw new Error("Missing symbol parameter");
-          const period = getQueryParam(event, "period") || "annual";
-          const limit = getQueryParam(event, "limit") ? parseInt(getQueryParam(event, "limit")!) : 5;
-          return await fmp.getFMPRatios(symbol, period, limit);
-        },
-      },
-      {
-        method: "GET",
-        path: "/fmp/dcf/{symbol}",
-        handler: async (event) => {
-          const symbol = getPathParam(event, "symbol");
-          if (!symbol) throw new Error("Missing symbol parameter");
-          return await fmp.getFMPDCF(symbol);
-        },
-      },
-      {
-        method: "GET",
-        path: "/fmp/earnings/{symbol}",
-        handler: async (event) => {
-          const symbol = getPathParam(event, "symbol");
-          if (!symbol) throw new Error("Missing symbol parameter");
-          const limit = getQueryParam(event, "limit") ? parseInt(getQueryParam(event, "limit")!) : 10;
-          return await fmp.getFMPEarnings(symbol, limit);
-        },
-      },
-      {
-        method: "GET",
-        path: "/fmp/insider-trades/{symbol}",
-        handler: async (event) => {
-          const symbol = getPathParam(event, "symbol");
-          if (!symbol) throw new Error("Missing symbol parameter");
-          const limit = getQueryParam(event, "limit") ? parseInt(getQueryParam(event, "limit")!) : 100;
-          return await fmp.getFMPInsiderTrades(symbol, limit);
-        },
-      },
-      {
-        method: "GET",
-        path: "/fmp/hedge-fund-holdings/{symbol}",
-        handler: async (event) => {
-          const symbol = getPathParam(event, "symbol");
-          if (!symbol) throw new Error("Missing symbol parameter");
-          const limit = getQueryParam(event, "limit") ? parseInt(getQueryParam(event, "limit")!) : 100;
-          return await fmp.getFMPHedgeFundHoldings(symbol, limit);
-        },
-      },
-      {
-        method: "GET",
-        path: "/fmp/market-news",
-        handler: async (event) => {
-          const symbol = getQueryParam(event, "symbol");
-          const limit = getQueryParam(event, "limit") ? parseInt(getQueryParam(event, "limit")!) : 50;
-          return await fmp.getFMPMarketNews(symbol, limit);
-        },
-      },
-      {
-        method: "GET",
-        path: "/fmp/economic-calendar",
-        handler: async (event) => {
-          const from = getQueryParam(event, "from");
-          const to = getQueryParam(event, "to");
-          if (!from || !to) throw new Error("Missing from and to parameters");
-          return await fmp.getFMPEconomicCalendar(from, to);
-        },
-      },
-      {
-        method: "GET",
-        path: "/fmp/earnings-calendar",
-        handler: async (event) => {
-          const from = getQueryParam(event, "from");
-          const to = getQueryParam(event, "to");
-          if (!from || !to) throw new Error("Missing from and to parameters");
-          return await fmp.getFMPEarningsCalendar(from, to);
-        },
-      },
-      {
-        method: "GET",
-        path: "/fmp/screener",
-        handler: async (event) => {
-          const criteria: Record<string, any> = {};
-          // Extraire tous les query params comme critères
-          if (event.queryStringParameters) {
-            Object.entries(event.queryStringParameters).forEach(([key, value]) => {
-              if (value) {
-                criteria[key] = value;
-              }
-            });
-          }
-          return await fmp.getFMPScreener(criteria);
-        },
-      },
-      {
-        method: "GET",
-        path: "/fmp/sec-filings/{symbol}",
-        handler: async (event) => {
-          const symbol = getPathParam(event, "symbol");
-          if (!symbol) throw new Error("Missing symbol parameter");
-          const type = getQueryParam(event, "type");
-          const limit = getQueryParam(event, "limit") ? parseInt(getQueryParam(event, "limit")!) : 10;
-          return await fmp.getFMPSECFilings(symbol, type, limit);
-        },
-      },
+      // Routes FMP sont maintenant dans ./routes/fmp.routes.ts
+      ...fmpRoutes,
       // ========== Unusual Whales API Routes ==========
       {
         method: "GET",
