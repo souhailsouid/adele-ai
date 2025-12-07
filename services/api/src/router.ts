@@ -32,6 +32,8 @@ import { gammaSqueezeRoutes } from "./routes/gamma-squeeze.routes";
 import { surveillanceRoutes } from "./routes/surveillance.routes";
 import { alertRoutes } from "./routes/alert.routes";
 import { smartMoneyRoutes } from "./routes/smart-money.routes";
+import { getCombinedEconomicCalendar } from "./economic-calendar";
+import { getLatest13FFilings } from "./13f-filings";
 import type { NotificationType } from "./types/unusual-whales/alerts";
 import type {
   InstitutionalHoldingsQueryParams,
@@ -462,6 +464,28 @@ const routes: Route[] = [
       // ========== FMP API Routes ==========
       // Routes FMP sont maintenant dans ./routes/fmp.routes.ts
       ...fmpRoutes,
+      // ========== Aliases pour simplifier l'utilisation ==========
+      {
+        method: "GET",
+        path: "/economic-calendar",
+        handler: async (event) => {
+          const from = getQueryParam(event, "from");
+          const to = getQueryParam(event, "to");
+          // Combine FMP + Unusual Whales economic calendars
+          return await getCombinedEconomicCalendar({ from, to });
+        },
+      },
+      {
+        method: "GET",
+        path: "/13f-filings/latest",
+        handler: async (event) => {
+          const from = getQueryParam(event, "from");
+          const to = getQueryParam(event, "to");
+          const limit = getQueryParam(event, "limit") ? parseInt(getQueryParam(event, "limit")!) : 100;
+          // Combine FMP + Unusual Whales 13F filings
+          return await getLatest13FFilings({ from, to, limit });
+        },
+      },
       // ========== Combined Analysis Routes (FMP + UW) ==========
       ...combinedAnalysisRoutes,
       // ========== Scoring Routes ==========

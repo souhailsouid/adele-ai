@@ -578,8 +578,11 @@ export async function getTickerInsiders(
     };
   }
 
-  // Appel API Unusual Whales
-  const uwResponse = await fetchUnusualWhales(`/insider/transactions?ticker=${ticker.toUpperCase()}&limit=${limit}`);
+  // Appel API Unusual Whales - Utiliser ticker_symbol au lieu de ticker
+  const params = new URLSearchParams();
+  params.append('ticker_symbol', ticker.toUpperCase());
+  params.append('limit', String(limit));
+  const uwResponse = await fetchUnusualWhales(`/insider/transactions?${params.toString()}`);
   // Removed debug logs getTickerInsiders > uwResponse', uwResponse);
   // Unusual Whales retourne {data: [...]} ou directement un tableau
   const uwData = Array.isArray(uwResponse) ? uwResponse : (uwResponse?.data || []);
@@ -588,8 +591,16 @@ export async function getTickerInsiders(
     console.error("[getTickerInsiders] Invalid response format:", typeof uwResponse, Object.keys(uwResponse || {}));
     throw new Error("Invalid response from Unusual Whales API");
   }
-  // Removed debug logs getTickerInsiders > uwData', uwData);
-  const insiders: InsiderTrade[] = uwData.map((item: any) => ({
+  // Filtrer les résultats pour s'assurer qu'ils correspondent au ticker demandé
+  // (l'API peut retourner des résultats pour plusieurs tickers)
+  const upperTicker = ticker.toUpperCase();
+  const filteredData = uwData.filter((item: any) => {
+    // Vérifier que le ticker correspond (case-insensitive)
+    const itemTicker = item.ticker ? item.ticker.toUpperCase() : null;
+    return itemTicker === upperTicker;
+  });
+  // Removed debug logs getTickerInsiders > filteredData', filteredData);
+  const insiders: InsiderTrade[] = filteredData.map((item: any) => ({
     owner_name: item.owner_name,
     officer_title: item.officer_title,
     transaction_code: item.transaction_code,
@@ -600,9 +611,9 @@ export async function getTickerInsiders(
     price: item.price,
   }));
   // Removed debug logs getTickerInsiders > insiders', insiders);
-  // Mettre en cache
+  // Mettre en cache (utiliser filteredData au lieu de uwData)
   const expiresAt = addDays(1).toISOString();
-  const cacheData = uwData.map((item: any) => ({
+  const cacheData = filteredData.map((item: any) => ({
     ticker: ticker.toUpperCase(),
     owner_name: item.owner_name,
     officer_title: item.officer_title,

@@ -197,7 +197,7 @@ export class SmartMoneyService {
             institutionName: decodedName,
             ticker: upperTicker,
             total: 0,
-            message: `Unable to fetch activity for "${decodedName}". The institution name might not be recognized by Unusual Whales API. Try using the CIK or exact institution name.`,
+            message: `Unable to fetch activity for "${decodedName}". The institution name might not be recognized by Unusual Whales API. Try using the CIK (e.g., "0001697748" for Berkshire Hathaway) instead of the institution name.`,
           },
         };
       }
@@ -214,7 +214,7 @@ export class SmartMoneyService {
             institutionName: decodedName,
             ticker: upperTicker,
             total: 0,
-            message: `No activity data found for "${decodedName}". The institution might not exist in Unusual Whales database or the name might be incorrect.`,
+            message: `No activity data found for "${decodedName}". The institution might not exist in Unusual Whales database or the name might be incorrect. Try using the CIK (e.g., "0001697748" for Berkshire Hathaway) instead.`,
           },
         };
       }
