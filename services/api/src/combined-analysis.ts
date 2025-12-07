@@ -9,6 +9,7 @@ import { MultiCriteriaScreenerService } from './services/multi-criteria-screener
 import { RiskAnalysisService } from './services/risk-analysis.service';
 import { InstitutionTrackingService } from './services/institution-tracking.service';
 import { SectorAnalysisService } from './services/sector-analysis.service';
+import { SmartMoneyService } from './services/smart-money.service';
 import { logger } from './utils/logger';
 import type { ScreeningCriteria } from './types/combined-analysis';
 
@@ -19,6 +20,7 @@ const multiCriteriaScreenerService = new MultiCriteriaScreenerService();
 const riskAnalysisService = new RiskAnalysisService();
 const institutionTrackingService = new InstitutionTrackingService();
 const sectorAnalysisService = new SectorAnalysisService();
+const smartMoneyService = new SmartMoneyService();
 
 // ========== Analyse Complète ==========
 
@@ -120,6 +122,32 @@ export async function analyzeSector(sector: string) {
     return await sectorAnalysisService.analyzeSector(sector);
   } catch (error) {
     log.error('Failed to analyze sector', error);
+    throw error;
+  }
+}
+
+// ========== Rotations Sectorielles ==========
+
+export async function detectSectorRotation() {
+  const log = logger.child({ function: 'detectSectorRotation' });
+  log.info('Detecting sector rotation');
+  try {
+    return await sectorAnalysisService.detectSectorRotation();
+  } catch (error) {
+    log.error('Failed to detect sector rotation', error);
+    throw error;
+  }
+}
+
+// ========== Market Tide ==========
+
+export async function getMarketTide() {
+  const log = logger.child({ function: 'getMarketTide' });
+  log.info('Getting market tide');
+  try {
+    return await sectorAnalysisService.getMarketTide();
+  } catch (error) {
+    log.error('Failed to get market tide', error);
     throw error;
   }
 }

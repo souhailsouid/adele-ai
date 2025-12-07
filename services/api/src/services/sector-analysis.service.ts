@@ -15,6 +15,14 @@ import type {
   SectorTicker,
   SectorRecommendation,
 } from '../types/combined-analysis';
+import type {
+  SectorRotation,
+  SectorRotationResponse,
+  MarketTideResponse,
+  SectorRotationData,
+  MarketTideData,
+  RotationDirection,
+} from '../types/sector-rotation';
 
 export class SectorAnalysisService {
   /**
@@ -202,6 +210,328 @@ export class SectorAnalysisService {
         timestamp: new Date().toISOString(),
       };
     }, `Analyze sector ${sector}`);
+  }
+
+  /**
+   * Identifier les rotations sectorielles
+   */
+  async detectSectorRotation(): Promise<SectorRotationResponse> {
+    return handleError(async () => {
+      const log = logger.child({ operation: 'detectSectorRotation' });
+      log.info('Detecting sector rotation');
+
+      // Secteurs principaux à analyser
+      const SECTORS = [
+        'Technology',
+        'Healthcare',
+        'Financial',
+        'Energy',
+        'Consumer Cyclical',
+        'Consumer Defensive',
+        'Industrials',
+        'Utilities',
+        'Real Estate',
+        'Communication Services',
+      ];
+
+      // Récupérer les données de tous les secteurs en parallèle
+      const [sectorTidesResults, marketTideResult] = await Promise.allSettled([
+        Promise.allSettled(
+          SECTORS.map((sector) => uw.getUWSectorTide(sector, {}))
+        ),
+        uw.getUWMarketTide({}),
+      ]);
+
+      log.info('Sector data fetched', {
+        sectorTides: sectorTidesResults.status,
+        marketTide: marketTideResult.status,
+      });
+
+      // Analyser les tides des secteurs
+      const sectors: SectorRotationData[] = [];
+      if (sectorTidesResults.status === 'fulfilled') {
+        for (let i = 0; i < SECTORS.length && i < sectorTidesResults.value.length; i++) {
+          const sector = SECTORS[i];
+          const tideResult = sectorTidesResults.value[i];
+
+          if (tideResult.status === 'fulfilled' && tideResult.value?.success && tideResult.value.data) {
+            const tide = tideResult.value.data;
+            const currentTide = tide.score || tide.tide_score || 50;
+            const previousTide = tide.previous_score || currentTide; // Approximation
+
+            sectors.push({
+              sector,
+              currentTide: currentTide - 50, // Normaliser -50 à +50
+              previousTide: previousTide - 50,
+              change: currentTide - previousTide,
+              trend: currentTide > 60 ? 'BULLISH' : currentTide < 40 ? 'BEARISH' : 'NEUTRAL',
+            });
+          }
+        }
+      }
+
+      // Market tide
+      const marketTide: MarketTideData = {
+        overall: 50,
+        sentiment: 'NEUTRAL',
+        volatility: 'MEDIUM',
+        sectors: {
+          strongest: [],
+          weakest: [],
+        },
+      };
+
+      if (marketTideResult.status === 'fulfilled' && marketTideResult.value?.success && marketTideResult.value.data) {
+        // MarketTideResponse.data est un tableau, prendre le dernier élément
+        const tideData = Array.isArray(marketTideResult.value.data)
+          ? marketTideResult.value.data[marketTideResult.value.data.length - 1]
+          : marketTideResult.value.data;
+
+        // Extraire la valeur du tide (string) et la convertir en nombre
+        const tideValue = tideData?.tide ? parseFloat(tideData.tide) : 0.5;
+        // Convertir de 0-1 à 0-100
+        marketTide.overall = Math.round(tideValue * 100);
+        marketTide.sentiment = marketTide.overall > 60 ? 'BULLISH' : marketTide.overall < 40 ? 'BEARISH' : 'NEUTRAL';
+        marketTide.volatility = 'MEDIUM'; // Non disponible dans la réponse UW
+      }
+
+      // Identifier les secteurs les plus forts et faibles
+      const sortedSectors = [...sectors].sort((a, b) => b.currentTide - a.currentTide);
+      marketTide.sectors.strongest = sortedSectors.slice(0, 3).map((s) => s.sector);
+      marketTide.sectors.weakest = sortedSectors.slice(-3).map((s) => s.sector);
+
+      // Déterminer la rotation actuelle
+      const currentRotation = this.determineRotation(sectors, marketTide);
+      const predictedRotation = this.predictRotation(sectors, marketTide);
+
+      // Générer les recommandations
+      const recommendations = this.generateSectorRecommendations(sectors, currentRotation);
+
+      const rotation: SectorRotation = {
+        currentRotation,
+        predictedRotation,
+        sectors,
+        marketTide,
+        recommendations,
+        timestamp: new Date().toISOString(),
+      };
+
+      log.info('Sector rotation detected', {
+        currentRotation,
+        predictedRotation,
+        sectorCount: sectors.length,
+      });
+
+      return {
+        success: true,
+        data: rotation,
+      };
+    });
+  }
+
+  /**
+   * Récupérer le market tide global
+   */
+  async getMarketTide(): Promise<MarketTideResponse> {
+    return handleError(async () => {
+      const log = logger.child({ operation: 'getMarketTide' });
+      log.info('Fetching market tide');
+
+      const marketTideResult = await uw.getUWMarketTide({ limit: 1 });
+
+      if (!marketTideResult.success || !marketTideResult.data) {
+        log.warn('Failed to fetch market tide');
+        return {
+          success: true,
+          data: {
+            overall: 50,
+            sentiment: 'NEUTRAL',
+            volatility: 'MEDIUM',
+            sectors: {
+              strongest: [],
+              weakest: [],
+            },
+          },
+        };
+      }
+
+      // MarketTideResponse.data est un tableau, prendre le dernier élément
+      const tideData = Array.isArray(marketTideResult.data)
+        ? marketTideResult.data[marketTideResult.data.length - 1]
+        : marketTideResult.data;
+
+      // Extraire la valeur du tide (string) et la convertir en nombre
+      const tideValue = tideData?.tide ? parseFloat(tideData.tide) : 0.5;
+      // Convertir de 0-1 à 0-100
+      const overall = Math.round(tideValue * 100);
+
+      const marketTide: MarketTideData = {
+        overall,
+        sentiment: overall > 60 ? 'BULLISH' : overall < 40 ? 'BEARISH' : 'NEUTRAL',
+        volatility: 'MEDIUM', // Non disponible dans la réponse UW
+        sectors: {
+          strongest: [],
+          weakest: [],
+        },
+      };
+
+      log.info('Market tide extracted', {
+        overall,
+        sentiment: marketTide.sentiment,
+        tideValue,
+      });
+
+      return {
+        success: true,
+        data: marketTide,
+      };
+    });
+  }
+
+  /**
+   * Déterminer la direction de rotation actuelle
+   */
+  private determineRotation(
+    sectors: SectorRotationData[],
+    marketTide: MarketTideData
+  ): RotationDirection {
+    if (sectors.length === 0) {
+      return 'NEUTRAL';
+    }
+
+    // Identifier les secteurs risqués (Tech, Growth) vs défensifs (Utilities, Staples)
+    const riskOnSectors = sectors.filter(
+      (s) =>
+        s.sector === 'Technology' ||
+        s.sector === 'Communication Services' ||
+        s.sector === 'Consumer Cyclical'
+    );
+    const riskOffSectors = sectors.filter(
+      (s) => s.sector === 'Utilities' || s.sector === 'Consumer Defensive'
+    );
+    const valueSectors = sectors.filter(
+      (s) => s.sector === 'Financial' || s.sector === 'Energy'
+    );
+
+    const riskOnAvg = riskOnSectors.length > 0
+      ? riskOnSectors.reduce((sum, s) => sum + s.currentTide, 0) / riskOnSectors.length
+      : 0;
+    const riskOffAvg = riskOffSectors.length > 0
+      ? riskOffSectors.reduce((sum, s) => sum + s.currentTide, 0) / riskOffSectors.length
+      : 0;
+    const valueAvg = valueSectors.length > 0
+      ? valueSectors.reduce((sum, s) => sum + s.currentTide, 0) / valueSectors.length
+      : 0;
+
+    // Déterminer la rotation
+    if (riskOnAvg > riskOffAvg + 10 && riskOnAvg > valueAvg + 5) {
+      return 'RISK_ON';
+    } else if (riskOffAvg > riskOnAvg + 10) {
+      return 'RISK_OFF';
+    } else if (valueAvg > riskOnAvg + 5 && valueAvg > riskOffAvg + 5) {
+      return 'VALUE';
+    } else if (riskOnAvg > valueAvg + 5) {
+      return 'GROWTH';
+    } else {
+      return 'NEUTRAL';
+    }
+  }
+
+  /**
+   * Prédire la rotation future
+   */
+  private predictRotation(
+    sectors: SectorRotationData[],
+    marketTide: MarketTideData
+  ): RotationDirection {
+    // Analyse des tendances (changements)
+    const increasingSectors = sectors.filter((s) => s.change > 5);
+    const decreasingSectors = sectors.filter((s) => s.change < -5);
+
+    // Si beaucoup de secteurs augmentent, prédire RISK_ON ou GROWTH
+    if (increasingSectors.length > decreasingSectors.length + 2) {
+      const techSectors = increasingSectors.filter(
+        (s) => s.sector === 'Technology' || s.sector === 'Communication Services'
+      );
+      if (techSectors.length > 0) {
+        return 'RISK_ON';
+      }
+      return 'GROWTH';
+    }
+
+    // Si beaucoup de secteurs diminuent, prédire RISK_OFF
+    if (decreasingSectors.length > increasingSectors.length + 2) {
+      return 'RISK_OFF';
+    }
+
+    // Sinon, maintenir la rotation actuelle
+    return this.determineRotation(sectors, marketTide);
+  }
+
+  /**
+   * Générer des recommandations par secteur
+   */
+  private generateSectorRecommendations(
+    sectors: SectorRotationData[],
+    rotation: RotationDirection
+  ): Array<{
+    sector: string;
+    action: 'BUY' | 'SELL' | 'HOLD' | 'AVOID';
+    confidence: number;
+    reasoning: string;
+    timeframe?: string;
+  }> {
+    const recommendations: Array<{
+      sector: string;
+      action: 'BUY' | 'SELL' | 'HOLD' | 'AVOID';
+      confidence: number;
+      reasoning: string;
+      timeframe?: string;
+    }> = [];
+
+    for (const sectorData of sectors) {
+      let action: 'BUY' | 'SELL' | 'HOLD' | 'AVOID' = 'HOLD';
+      let confidence = 50;
+      let reasoning = '';
+
+      // Basé sur le tide
+      if (sectorData.currentTide > 20) {
+        action = 'BUY';
+        confidence = Math.min(90, 50 + sectorData.currentTide);
+        reasoning = `Secteur ${sectorData.sector} : Sentiment très positif (tide: ${sectorData.currentTide})`;
+      } else if (sectorData.currentTide < -20) {
+        action = 'AVOID';
+        confidence = Math.min(90, 50 + Math.abs(sectorData.currentTide));
+        reasoning = `Secteur ${sectorData.sector} : Sentiment très négatif (tide: ${sectorData.currentTide})`;
+      } else {
+        action = 'HOLD';
+        confidence = 50;
+        reasoning = `Secteur ${sectorData.sector} : Sentiment neutre`;
+      }
+
+      // Ajuster selon la rotation
+      if (rotation === 'RISK_ON' && (sectorData.sector === 'Technology' || sectorData.sector === 'Communication Services')) {
+        if (action === 'BUY') {
+          confidence = Math.min(95, confidence + 10);
+        }
+        reasoning += '. Rotation RISK_ON favorable.';
+      } else if (rotation === 'RISK_OFF' && (sectorData.sector === 'Utilities' || sectorData.sector === 'Consumer Defensive')) {
+        if (action === 'BUY') {
+          confidence = Math.min(95, confidence + 10);
+        }
+        reasoning += '. Rotation RISK_OFF favorable.';
+      }
+
+      recommendations.push({
+        sector: sectorData.sector,
+        action,
+        confidence,
+        reasoning,
+        timeframe: 'short-term',
+      });
+    }
+
+    return recommendations;
   }
 }
 

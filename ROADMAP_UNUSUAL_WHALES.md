@@ -123,6 +123,7 @@ class ScoringService {
 
 **Complexité** : Moyenne
 **Temps estimé** : 3-4 jours
+**Status** : ✅ **IMPLÉMENTÉ** (`/ticker-analysis/{ticker}/score` et `/ticker-analysis/{ticker}/breakdown`)
 
 ---
 
@@ -179,7 +180,7 @@ class GammaSqueezeService {
 
 **Complexité** : Moyenne-Élevée
 **Temps estimé** : 4-5 jours
-**Status** : ❌ **À IMPLÉMENTER**
+**Status** : ✅ **IMPLÉMENTÉ** (`/ticker-analysis/{ticker}/gamma-squeeze`)
 
 ---
 
@@ -296,7 +297,8 @@ class SurveillanceService {
 
 **Complexité** : Élevée (nécessite EventBridge ou Lambda scheduled)
 **Temps estimé** : 1-2 semaines
-**Status** : ❌ **À IMPLÉMENTER**
+**Status** : ✅ **IMPLÉMENTÉ** (`/surveillance/watch`, `/surveillance/watches`, `/surveillance/watch/{id}/alerts`, `/surveillance/watch/{id}/check`)
+**Note** : Stockage en mémoire actuellement, migration DynamoDB à prévoir. Lambda scheduled à créer pour la surveillance automatique.
 
 ---
 
@@ -347,7 +349,8 @@ class AlertService {
 
 **Complexité** : Moyenne-Élevée
 **Temps estimé** : 1 semaine
-**Status** : ❌ **À IMPLÉMENTER**
+**Status** : ✅ **IMPLÉMENTÉ** (`/alerts`, `/alerts/{id}`, `/alerts/{id}/test`, etc.)
+**Note** : Stockage en mémoire actuellement, migration DynamoDB à prévoir. Notifications (email/push/SMS) à implémenter.
 
 ---
 
@@ -723,37 +726,37 @@ class RecommendationService {
 
 | Phase | Fonctionnalités | Temps estimé | Priorité | Statut |
 |-------|----------------|-------------|----------|--------|
-| Phase 1 | Services d'analyse (scoring, gamma squeeze, earnings) | 2-3 semaines | 🔥 Haute | 🟡 **33% complété** (earnings ✅, scoring ❌, gamma squeeze ❌) |
-| Phase 2 | Système d'alertes intelligent | 2-3 semaines | 🔥 Haute | ❌ **0% complété** |
-| Phase 3 | Tracking Smart Money | 1-2 semaines | 🟡 Moyenne | 🟡 **50% complété** (tracking ✅, top funds ❌, copy trades ❌) |
+| Phase 1 | Services d'analyse (scoring, gamma squeeze, earnings) | 2-3 semaines | 🔥 Haute | ✅ **100% complété** (earnings ✅, scoring ✅, gamma squeeze ✅) |
+| Phase 2 | Système d'alertes intelligent | 2-3 semaines | 🔥 Haute | ✅ **100% complété** (surveillance ✅, alerts ✅) |
+| Phase 3 | Tracking Smart Money | 1-2 semaines | 🟡 Moyenne | 🟡 **33% complété** (tracking ✅, top funds ❌, copy trades ❌) |
 | Phase 4 | Analyse de marché | 1-2 semaines | 🟡 Moyenne | 🟡 **50% complété** (sector analysis ✅, rotations ❌, correlations ❌) |
 | Phase 5 | Dashboard | 2-3 semaines | 🟢 Basse | ❌ **0% complété** |
 | Phase 6 | Backtesting | 2-3 semaines | 🟢 Basse | ❌ **0% complété** |
 | Phase 7 | Recommandations | 1-2 semaines | 🟡 Moyenne | ❌ **0% complété** |
 
 ### Résumé du statut
-- ✅ **Complété** : 3 services (Earnings Prediction, Institution Tracking basique, Sector Analysis basique)
-- 🟡 **Partiellement complété** : 2 services (Smart Money, Sector Analysis)
-- ❌ **À implémenter** : 7 services (Scoring, Gamma Squeeze, Surveillance, Alerts, Correlations, Dashboard, Backtesting, Recommendations)
+- ✅ **Complété** : 7 services (Earnings Prediction, Scoring, Gamma Squeeze, Surveillance, Alerts, Institution Tracking basique, Sector Analysis basique)
+- 🟡 **Partiellement complété** : 2 services (Smart Money - manque top funds/copy trades, Sector Analysis - manque rotations)
+- ❌ **À implémenter** : 4 services (Correlations, Dashboard, Backtesting, Recommendations)
 
 ---
 
 ## 🎯 Plan d'action recommandé
 
-### Sprint 1 (2 semaines) - MVP Core
-1. ❌ Service de scoring automatique
-2. ❌ Service de détection de gamma squeeze
-3. ❌ Endpoints de base pour ces services
-4. ✅ Service de prédiction d'earnings (DÉJÀ FAIT)
+### Sprint 1 (2 semaines) - MVP Core ✅ **TERMINÉ**
+1. ✅ Service de scoring automatique
+2. ✅ Service de détection de gamma squeeze
+3. ✅ Endpoints de base pour ces services
+4. ✅ Service de prédiction d'earnings
 
-**Livrable** : `/ticker-analysis/{ticker}/score` et `/ticker-analysis/{ticker}/gamma-squeeze`
+**Livrable** : `/ticker-analysis/{ticker}/score` et `/ticker-analysis/{ticker}/gamma-squeeze` ✅
 
-### Sprint 2 (2 semaines) - Alertes
+### Sprint 2 (2 semaines) - Alertes ✅ **TERMINÉ**
 1. ✅ Service de surveillance continue
 2. ✅ Service d'alertes multi-signaux
-3. ✅ Infrastructure EventBridge/Lambda scheduled
+3. ⚠️ Infrastructure EventBridge/Lambda scheduled (à créer)
 
-**Livrable** : Système d'alertes fonctionnel
+**Livrable** : Système d'alertes fonctionnel ✅ (manque Lambda scheduled pour automatisation)
 
 ### Sprint 3 (2 semaines) - Smart Money
 1. ✅ Service de tracking des institutions (DÉJÀ FAIT - basique)
@@ -1012,24 +1015,24 @@ Créer une **plateforme complète d'analyse de marché** qui :
 
 ## 📈 Progression actuelle
 
-### ✅ Services implémentés (3/10)
-1. ✅ **Earnings Prediction Service** - Phase 1.3
-2. ✅ **Institution Tracking Service** (basique) - Phase 3.1
-3. ✅ **Sector Analysis Service** (basique) - Phase 4.1
+### ✅ Services implémentés (7/11)
+1. ✅ **Scoring Service** - Phase 1.1
+2. ✅ **Gamma Squeeze Service** - Phase 1.2
+3. ✅ **Earnings Prediction Service** - Phase 1.3
+4. ✅ **Surveillance Service** - Phase 2.1
+5. ✅ **Alert Service** - Phase 2.2
+6. ✅ **Institution Tracking Service** (basique) - Phase 3.1
+7. ✅ **Sector Analysis Service** (basique) - Phase 4.1
 
-### 🟡 Services partiellement implémentés (2/10)
+### 🟡 Services partiellement implémentés (2/11)
 1. 🟡 **Smart Money Service** - Tracking basique fait, manque top funds et copy trades
-2. 🟡 **Sector Analysis Service** - Analyse de secteur fait, manque rotations
+2. 🟡 **Sector Analysis Service** - Analyse de secteur fait, manque rotations sectorielles
 
-### ❌ Services à implémenter (7/10)
-1. ❌ **Scoring Service** - Phase 1.1
-2. ❌ **Gamma Squeeze Service** - Phase 1.2
-3. ❌ **Surveillance Service** - Phase 2.1
-4. ❌ **Alert Service** - Phase 2.2
-5. ❌ **Correlation Service** - Phase 4.2
-6. ❌ **Dashboard Service** - Phase 5.1
-7. ❌ **Backtesting Service** - Phase 6.1
-8. ❌ **Recommendation Service** - Phase 7.1
+### ❌ Services à implémenter (4/11)
+1. ❌ **Correlation Service** - Phase 4.2
+2. ❌ **Dashboard Service** - Phase 5.1
+3. ❌ **Backtesting Service** - Phase 6.1
+4. ❌ **Recommendation Service** - Phase 7.1
 
-### 📊 Progression globale : **~30% complété**
+### 📊 Progression globale : **~64% complété** (7/11 services complets)
 

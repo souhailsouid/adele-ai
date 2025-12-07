@@ -29,6 +29,9 @@ import { fmpRoutes } from "./routes/fmp.routes";
 import { combinedAnalysisRoutes } from "./routes/combined-analysis.routes";
 import { scoringRoutes } from "./routes/scoring.routes";
 import { gammaSqueezeRoutes } from "./routes/gamma-squeeze.routes";
+import { surveillanceRoutes } from "./routes/surveillance.routes";
+import { alertRoutes } from "./routes/alert.routes";
+import { smartMoneyRoutes } from "./routes/smart-money.routes";
 import type { NotificationType } from "./types/unusual-whales/alerts";
 import type {
   InstitutionalHoldingsQueryParams,
@@ -465,6 +468,12 @@ const routes: Route[] = [
       ...scoringRoutes,
       // ========== Gamma Squeeze Routes ==========
       ...gammaSqueezeRoutes,
+      // ========== Surveillance Routes ==========
+      ...surveillanceRoutes,
+      // ========== Alert Routes ==========
+      ...alertRoutes,
+      // ========== Smart Money Routes ==========
+      ...smartMoneyRoutes,
       // ========== Unusual Whales API Routes ==========
       {
         method: "GET",

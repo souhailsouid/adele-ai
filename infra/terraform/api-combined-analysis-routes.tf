@@ -76,6 +76,24 @@ resource "aws_apigatewayv2_route" "get_analysis_sector" {
   authorizer_id      = aws_apigatewayv2_authorizer.jwt.id
 }
 
+# Sector Rotation
+resource "aws_apigatewayv2_route" "get_market_analysis_sector_rotation" {
+  api_id             = aws_apigatewayv2_api.http.id
+  route_key          = "GET /market-analysis/sector-rotation"
+  target             = "integrations/${aws_apigatewayv2_integration.api_lambda.id}"
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.jwt.id
+}
+
+# Market Tide
+resource "aws_apigatewayv2_route" "get_market_analysis_market_tide" {
+  api_id             = aws_apigatewayv2_api.http.id
+  route_key          = "GET /market-analysis/market-tide"
+  target             = "integrations/${aws_apigatewayv2_integration.api_lambda.id}"
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.jwt.id
+}
+
 # ========== Phase 1: Scoring Service ==========
 
 # Ticker Score

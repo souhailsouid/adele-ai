@@ -104,5 +104,23 @@ export const combinedAnalysisRoutes: Route[] = [
       return await combinedAnalysis.analyzeSector(sector);
     },
   },
+
+  // ========== Rotations Sectorielles ==========
+  {
+    method: "GET",
+    path: "/market-analysis/sector-rotation",
+    handler: async (event) => {
+      return await combinedAnalysis.detectSectorRotation();
+    },
+  },
+
+  // ========== Market Tide ==========
+  {
+    method: "GET",
+    path: "/market-analysis/market-tide",
+    handler: async (event) => {
+      return await combinedAnalysis.getMarketTide();
+    },
+  },
 ];
 

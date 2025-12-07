@@ -25,11 +25,19 @@ export class ApiClientService {
     return handleError(async () => {
       const url = this.buildUrl(endpoint, params);
       const sanitizedUrl = this.sanitizeUrl(url);
-      logger.debug(`API GET request`, { url: sanitizedUrl, endpoint, params });
+      const headers = this.getHeaders();
+      
+      logger.debug(`API GET request`, { 
+        url: sanitizedUrl, 
+        endpoint, 
+        params,
+        hasAuthHeader: !!headers['Authorization'],
+        authHeaderPrefix: headers['Authorization']?.substring(0, 20) + '...',
+      });
 
       const response = await fetch(url, {
         method: 'GET',
-        headers: this.getHeaders(),
+        headers,
         signal: this.config.timeout ? AbortSignal.timeout(this.config.timeout) : undefined,
       });
 
@@ -90,6 +98,10 @@ export class ApiClientService {
     // Si l'API key doit être dans les headers (Authorization Bearer)
     if (this.config.apiKeyHeader && this.config.apiKeyHeader.toLowerCase() === 'authorization') {
       headers['Authorization'] = `Bearer ${this.config.apiKey}`;
+      logger.debug('Authorization header added', {
+        hasToken: !!this.config.apiKey,
+        tokenLength: this.config.apiKey?.length || 0,
+      });
     } else if (this.config.apiKeyHeader && this.config.apiKeyHeader.toLowerCase() !== 'apikey') {
       headers[this.config.apiKeyHeader] = this.config.apiKey;
     }
@@ -223,8 +235,17 @@ export class ApiClientService {
 export function createUnusualWhalesClient(): ApiClientService {
   const apiKey = process.env.UNUSUAL_WHALES_API_KEY;
   if (!apiKey) {
+    logger.error('UNUSUAL_WHALES_API_KEY is missing', {
+      envKeys: Object.keys(process.env).filter(k => k.includes('UNUSUAL') || k.includes('UW')),
+    });
     throw new Error('UNUSUAL_WHALES_API_KEY environment variable is required');
   }
+
+  logger.debug('Creating Unusual Whales client', {
+    hasApiKey: !!apiKey,
+    apiKeyLength: apiKey.length,
+    apiKeyPrefix: apiKey.substring(0, 10) + '...',
+  });
 
   return new ApiClientService({
     baseUrl: 'https://api.unusualwhales.com/api',
