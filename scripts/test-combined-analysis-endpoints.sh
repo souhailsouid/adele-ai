@@ -1,7 +1,11 @@
 ^#!/bin/bash
 
 # Script de test pour les endpoints d'analyse combinée FMP + UW
-# Usage: ACCESS_TOKEN="your_token" ./scripts/test-combined-analysis-endpoints.sh [API_GATEWAY_URL]
+# Usage: ACCESS_TOKEN="your_token" ./scripts/test-combined-analysis-endpoints.sh [API_MAIN_GATEWAY_URL]
+#
+# Note: 
+#   - Les routes d'analyse combinée sont sur l'API Gateway 1 (application principale)
+#   - Récupérer l'URL avec: terraform output api_gateway_url
 
 # Couleurs pour l'output
 GREEN='\033[0;32m'
@@ -13,13 +17,14 @@ NC='\033[0m' # No Color
 # Token d'accès
 ACCESS_TOKEN="${ACCESS_TOKEN:-}"
 
-# URL de l'API Gateway (par défaut ou depuis l'argument)
+# URL de l'API Gateway 1 (application principale) - par défaut ou depuis l'argument
+# ⚠️ Après terraform apply, récupérer avec: terraform output api_gateway_url
 API_URL="${1:-https://tsdd1sibd1.execute-api.eu-west-3.amazonaws.com/prod}"
 
 # Vérifier que le token est fourni
 if [ -z "$ACCESS_TOKEN" ]; then
   echo -e "${RED}Erreur: ACCESS_TOKEN est requis${NC}"
-  echo -e "Usage: ACCESS_TOKEN=\"your_token\" ./scripts/test-combined-analysis-endpoints.sh [API_GATEWAY_URL]"
+  echo -e "Usage: ACCESS_TOKEN=\"your_token\" ./scripts/test-combined-analysis-endpoints.sh [API_MAIN_GATEWAY_URL]"
   exit 1
 fi
 

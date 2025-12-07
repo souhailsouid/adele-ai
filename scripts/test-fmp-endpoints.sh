@@ -2,34 +2,46 @@
 
 # Script de test pour les endpoints FMP (Financial Modeling Prep)
 # Usage: 
-#   ./scripts/test-fmp-endpoints.sh [API_GATEWAY_URL] [ACCESS_TOKEN]
-#   ou: ACCESS_TOKEN="your_token" ./scripts/test-fmp-endpoints.sh [API_GATEWAY_URL]
+#   ./scripts/test-fmp-endpoints.sh [API_DATA_GATEWAY_URL] [ACCESS_TOKEN]
+#   ou: ACCESS_TOKEN="your_token" ./scripts/test-fmp-endpoints.sh [API_DATA_GATEWAY_URL]
 #
-# Note: La clé API FMP est configurée côté backend dans Lambda via les variables d'environnement.
-#       Le script teste les endpoints via l'API Gateway.
+# Note: 
+#   - Les routes FMP sont maintenant sur l'API Gateway 2 (données brutes)
+#   - Récupérer l'URL avec: terraform output api_data_gateway_url
+#   - La clé API FMP est configurée côté backend dans Lambda via les variables d'environnement.
 
 # Couleurs pour l'output
 GREEN='\033[0;32m'
 RED='\033[0;31m'
 YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Token d'accès (peut être passé via variable d'environnement ou argument)
-# Usage: ACCESS_TOKEN="your_token" ./scripts/test-fmp-endpoints.sh [API_GATEWAY_URL]
+# Usage: ACCESS_TOKEN="your_token" ./scripts/test-fmp-endpoints.sh [API_DATA_GATEWAY_URL]
 ACCESS_TOKEN="${ACCESS_TOKEN:-}"
 
-# URL de l'API Gateway (par défaut ou depuis l'argument)
-API_URL="${1:-https://tsdd1sibd1.execute-api.eu-west-3.amazonaws.com/prod}"
+# URL de l'API Gateway 2 (données brutes) - par défaut ou depuis l'argument
+# ⚠️ Après terraform apply, récupérer avec: terraform output api_data_gateway_url
+API_URL="${1:-https://YOUR_API_DATA_GATEWAY_ID.execute-api.eu-west-3.amazonaws.com/prod}"
 
 # Vérifier que le token est fourni
 if [ -z "$ACCESS_TOKEN" ]; then
   echo -e "${RED}Erreur: ACCESS_TOKEN est requis${NC}"
-  echo -e "Usage: ACCESS_TOKEN=\"your_token\" ./scripts/test-fmp-endpoints.sh [API_GATEWAY_URL]"
+  echo -e "Usage: ACCESS_TOKEN=\"your_token\" ./scripts/test-fmp-endpoints.sh [API_DATA_GATEWAY_URL]"
   exit 1
 fi
 
-echo -e "${YELLOW}=== Test des endpoints FMP (Financial Modeling Prep) ===${NC}"
-echo -e "API URL: ${API_URL}"
+# Vérifier que l'URL n'est pas le placeholder
+if [[ "$API_URL" == *"YOUR_API_DATA_GATEWAY_ID"* ]]; then
+  echo -e "${YELLOW}⚠️  Attention: URL par défaut détectée${NC}"
+  echo -e "${YELLOW}   Récupérez l'URL avec: terraform output api_data_gateway_url${NC}"
+  echo -e "${YELLOW}   Puis relancez: ACCESS_TOKEN=\"...\" ./scripts/test-fmp-endpoints.sh <URL>${NC}"
+  echo ""
+fi
+
+echo -e "${BLUE}=== Test des endpoints FMP (Financial Modeling Prep) ===${NC}"
+echo -e "${BLUE}API Gateway 2 (Données Brutes): ${API_URL}${NC}"
 echo ""
 
 # Fonction pour tester un endpoint

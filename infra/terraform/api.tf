@@ -10,42 +10,43 @@ resource "aws_cloudwatch_log_group" "api_lambda" {
   retention_in_days = 14
 }
 
-# API HTTP
+# API HTTP - Application Principale (routes métier)
 resource "aws_apigatewayv2_api" "http" {
-  name          = "${var.project}-${var.stage}-http"
+  name          = "${var.project}-${var.stage}-http-app"
+  description   = "API Gateway pour les routes de l'application principale (signals, funds, companies, analysis, scoring)"
   protocol_type = "HTTP"
   cors_configuration {
-    allow_origins = var.frontend_allowed_origins
-    allow_methods = ["GET","POST","PATCH","OPTIONS"]
-    allow_headers = ["authorization","content-type"]
+    allow_origins  = var.frontend_allowed_origins
+    allow_methods  = ["GET", "POST", "PATCH", "OPTIONS"]
+    allow_headers  = ["authorization", "content-type"]
     expose_headers = ["*"]
-    max_age = 600
+    max_age        = 600
   }
 }
 
 # Lambda (ton zip sera buildé côté /services/api)
 resource "aws_lambda_function" "api" {
-  function_name = "${var.project}-${var.stage}-api"
-  role          = aws_iam_role.api_lambda_role.arn
-  runtime       = "nodejs20.x"
-  handler       = "index.handler"
-  filename      = "${path.module}/../../services/api/api.zip"  # ← produit par npm run bundle
-  source_code_hash = filebase64sha256("${path.module}/../../services/api/api.zip")  # ← détecte automatiquement les changements
-  timeout       = 10
-  memory_size   = 512
-  
+  function_name    = "${var.project}-${var.stage}-api"
+  role             = aws_iam_role.api_lambda_role.arn
+  runtime          = "nodejs20.x"
+  handler          = "index.handler"
+  filename         = "${path.module}/../../services/api/api.zip"                   # ← produit par npm run bundle
+  source_code_hash = filebase64sha256("${path.module}/../../services/api/api.zip") # ← détecte automatiquement les changements
+  timeout          = 10
+  memory_size      = 512
+
   depends_on = [aws_cloudwatch_log_group.api_lambda]
-  
+
   environment {
     variables = {
-      SUPABASE_URL        = var.supabase_url
-      SUPABASE_SERVICE_KEY = var.supabase_service_key
-      COGNITO_ISSUER      = "https://cognito-idp.${var.region}.amazonaws.com/${aws_cognito_user_pool.this.id}"
-      COGNITO_AUDIENCE    = aws_cognito_user_pool_client.web.id
-      EVENT_BUS_NAME      = "${var.project}-${var.stage}-signals"
-      OPENAI_API_KEY      = var.openai_api_key
+      SUPABASE_URL           = var.supabase_url
+      SUPABASE_SERVICE_KEY   = var.supabase_service_key
+      COGNITO_ISSUER         = "https://cognito-idp.${var.region}.amazonaws.com/${aws_cognito_user_pool.this.id}"
+      COGNITO_AUDIENCE       = aws_cognito_user_pool_client.web.id
+      EVENT_BUS_NAME         = "${var.project}-${var.stage}-signals"
+      OPENAI_API_KEY         = var.openai_api_key
       UNUSUAL_WHALES_API_KEY = var.unusual_whales_api_key
-      FMP_API_KEY         = var.fmp_api_key
+      FMP_API_KEY            = var.fmp_api_key
     }
   }
 }
@@ -57,7 +58,7 @@ resource "aws_apigatewayv2_integration" "api_lambda" {
   integration_type       = "AWS_PROXY"
   integration_uri        = aws_lambda_function.api.arn
   payload_format_version = "2.0"
-  
+
   depends_on = [aws_lambda_permission.api_invoke]
 }
 
@@ -319,7 +320,7 @@ resource "aws_lambda_permission" "api_invoke" {
   function_name = aws_lambda_function.api.function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.http.execution_arn}/*/*"
-  
+
   # Empêcher la suppression accidentelle de cette ressource critique
   lifecycle {
     create_before_destroy = true

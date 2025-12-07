@@ -1,7 +1,13 @@
 #!/bin/bash
 
 # Script de test complet avec rapport pour toutes les routes API
-# Usage: ./scripts/test-all-routes-with-report.sh [API_GATEWAY_URL] [OUTPUT_FILE]
+# Usage: ./scripts/test-all-routes-with-report.sh [API_MAIN_GATEWAY_URL] [API_DATA_GATEWAY_URL] [OUTPUT_FILE]
+#
+# Note: 
+#   - Ce script teste les routes des deux API Gateways
+#   - API Gateway 1: routes de l'application principale
+#   - API Gateway 2: routes de données brutes (FMP + UW)
+#   - Récupérer les URLs avec: terraform output api_gateway_url et terraform output api_data_gateway_url
 
 # Couleurs pour l'output
 GREEN='\033[0;32m'
@@ -11,11 +17,19 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Token d'accès
-ACCESS_TOKEN="${ACCESS_TOKEN:-eyJraWQiOiIwekpSMTVhYjBqSk0xdnJmaFBSa0NveGJBaHhnXC9HblhkeU56Y09iRkRyND0iLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiI1MTI5ODBiZS0wMGQxLTcwZmYtNTQ3Zi0zYTA3YzkyMzA3ODIiLCJpc3MiOiJodHRwczpcL1wvY29nbml0by1pZHAuZXUtd2VzdC0zLmFtYXpvbmF3cy5jb21cL2V1LXdlc3QtM19GUURtaHhWMTQiLCJjbGllbnRfaWQiOiJwa3A0aTgyam50dHRoajJjYmlsdHVkZ3ZhIiwib3JpZ2luX2p0aSI6ImI1YmUzYjJjLTJmYTEtNDhhNi05NzE4LWI3MjkzOGMzOGI2MiIsImV2ZW50X2lkIjoiYjk1NWIzZmYtZDFjOS00MDc2LWJlZjQtYjg2Yjk3NWFjNzczIiwidG9rZW5fdXNlIjoiYWNjZXNzIiwic2NvcGUiOiJhd3MuY29nbml0by5zaWduaW4udXNlci5hZG1pbiIsImF1dGhfdGltZSI6MTc2NDc2MzQ4MywiZXhwIjoxNzY0NzY3MDgzLCJpYXQiOjE3NjQ3NjM0ODMsImp0aSI6IjAzNmNiYTE3LTU5MTgtNDhiNS1hZjZmLTA1NzNhYzhjMTk5OCIsInVzZXJuYW1lIjoiNTEyOTgwYmUtMDBkMS03MGZmLTU0N2YtM2EwN2M5MjMwNzgyIn0.zuJ-QeOqgla5z8URh-wFQ4xFIdkuuupBx2JIKgmwHlTnAmjnj8u4KSGu-67Zr47d-aQ_N24n9hRDkC4u84CdXDXxqxGAPlZonvV6iAaNOLs1B3K2AnccX-1pvM7oTdRfOM5qti_Apm490_0lqD9uxh9mstBtMghtPI2d14jqQlIzZjibPmomFI1Mc2pFnTHAc3qAuL01gwGgrzO12y3MvBIZALHkNJRQChjwJFHMd_1O5tLA5U5Dz7tTwbuBsA5RWcRor6KwIM4gKev8k1zNQtcgPVXyY5vKLXINYk9gcKZW18Gkeo1ujfK2q7-ttqET7u6EmYqzlvzsoeswAZkp5Q}"
+ACCESS_TOKEN="${ACCESS_TOKEN:-}"
 
-# URL de l'API Gateway (par défaut ou depuis l'argument)
-API_URL="${1:-https://tsdd1sibd1.execute-api.eu-west-3.amazonaws.com/prod}"
-OUTPUT_FILE="${2:-test-report-$(date +%Y%m%d-%H%M%S).md}"
+# URLs des deux API Gateways
+API_MAIN_URL="${1:-https://tsdd1sibd1.execute-api.eu-west-3.amazonaws.com/prod}"
+API_DATA_URL="${2:-https://YOUR_API_DATA_GATEWAY_ID.execute-api.eu-west-3.amazonaws.com/prod}"
+OUTPUT_FILE="${3:-test-report-$(date +%Y%m%d-%H%M%S).md}"
+
+# Vérifier que le token est fourni
+if [ -z "$ACCESS_TOKEN" ]; then
+  echo -e "${RED}Erreur: ACCESS_TOKEN est requis${NC}"
+  echo -e "Usage: ACCESS_TOKEN=\"your_token\" ./scripts/test-all-routes-with-report.sh [API_MAIN_URL] [API_DATA_URL] [OUTPUT_FILE]"
+  exit 1
+fi
 
 # Compteurs
 TOTAL_TESTS=0
@@ -27,7 +41,8 @@ SKIPPED_TESTS=0
 declare -a RESULTS
 
 echo -e "${BLUE}=== Test complet de toutes les routes API ===${NC}"
-echo -e "API URL: ${API_URL}"
+echo -e "${BLUE}API Gateway 1 (Application): ${API_MAIN_URL}${NC}"
+echo -e "${BLUE}API Gateway 2 (Données Brutes): ${API_DATA_URL}${NC}"
 echo -e "Rapport: ${OUTPUT_FILE}"
 echo ""
 

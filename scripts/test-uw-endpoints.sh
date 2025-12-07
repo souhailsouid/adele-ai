@@ -1,30 +1,44 @@
 #!/bin/bash
 
 # Script de test pour les endpoints Unusual Whales
-# Usage: ./scripts/test-uw-endpoints.sh [API_GATEWAY_URL]
+# Usage: ./scripts/test-uw-endpoints.sh [API_DATA_GATEWAY_URL]
+#
+# Note: 
+#   - Les routes UW sont maintenant sur l'API Gateway 2 (données brutes)
+#   - Récupérer l'URL avec: terraform output api_data_gateway_url
 
 # Couleurs pour l'output
 GREEN='\033[0;32m'
 RED='\033[0;31m'
 YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Token d'accès (peut être passé via variable d'environnement)
-# Usage: ACCESS_TOKEN="your_token" ./scripts/test-uw-endpoints.sh [API_GATEWAY_URL]
+# Usage: ACCESS_TOKEN="your_token" ./scripts/test-uw-endpoints.sh [API_DATA_GATEWAY_URL]
 ACCESS_TOKEN="${ACCESS_TOKEN:-}"
 
-# URL de l'API Gateway (par défaut ou depuis l'argument)
-API_URL="${1:-https://tsdd1sibd1.execute-api.eu-west-3.amazonaws.com/prod}"
+# URL de l'API Gateway 2 (données brutes) - par défaut ou depuis l'argument
+# ⚠️ Après terraform apply, récupérer avec: terraform output api_data_gateway_url
+API_URL="${1:-https://YOUR_API_DATA_GATEWAY_ID.execute-api.eu-west-3.amazonaws.com/prod}"
 
 # Vérifier que le token est fourni
 if [ -z "$ACCESS_TOKEN" ]; then
   echo -e "${RED}Erreur: ACCESS_TOKEN est requis${NC}"
-  echo -e "Usage: ACCESS_TOKEN=\"your_token\" ./scripts/test-uw-endpoints.sh [API_GATEWAY_URL]"
+  echo -e "Usage: ACCESS_TOKEN=\"your_token\" ./scripts/test-uw-endpoints.sh [API_DATA_GATEWAY_URL]"
   exit 1
 fi
 
-echo -e "${YELLOW}=== Test des endpoints Unusual Whales ===${NC}"
-echo -e "API URL: ${API_URL}"
+# Vérifier que l'URL n'est pas le placeholder
+if [[ "$API_URL" == *"YOUR_API_DATA_GATEWAY_ID"* ]]; then
+  echo -e "${YELLOW}⚠️  Attention: URL par défaut détectée${NC}"
+  echo -e "${YELLOW}   Récupérez l'URL avec: terraform output api_data_gateway_url${NC}"
+  echo -e "${YELLOW}   Puis relancez: ACCESS_TOKEN=\"...\" ./scripts/test-uw-endpoints.sh <URL>${NC}"
+  echo ""
+fi
+
+echo -e "${BLUE}=== Test des endpoints Unusual Whales ===${NC}"
+echo -e "${BLUE}API Gateway 2 (Données Brutes): ${API_URL}${NC}"
 echo ""
 
 # Fonction pour tester un endpoint
