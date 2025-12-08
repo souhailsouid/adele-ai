@@ -61,3 +61,31 @@ variable "fmp_api_key" {
   sensitive   = true
   default     = ""
 }
+
+variable "neo4j_uri" {
+  type        = string
+  description = "Neo4j AURA URI"
+  sensitive   = true
+  default     = ""
+}
+
+variable "neo4j_username" {
+  type        = string
+  description = "Neo4j username"
+  sensitive   = true
+  default     = "neo4j"
+}
+
+variable "neo4j_password" {
+  type        = string
+  description = "Neo4j password"
+  sensitive   = true
+  default     = ""
+}
+
+variable "neo4j_database" {
+  type        = string
+  description = "Neo4j database name"
+  sensitive   = false
+  default     = "neo4j"
+}

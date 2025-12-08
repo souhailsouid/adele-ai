@@ -24,3 +24,9 @@ coinglass_api_key = ""  # Clé CoinGlass (optionnel)
 # APIs financières
 unusual_whales_api_key = ""  # Clé API Unusual Whales (https://unusualwhales.com)
 fmp_api_key = ""  # Clé API Financial Modeling Prep (https://financialmodelingprep.com)
+
+# Neo4j AURA (Graph Database)
+neo4j_uri = "neo4j+s://xxxxx.databases.neo4j.io"  # URI Neo4j AURA
+neo4j_username = "neo4j"  # Username Neo4j (généralement "neo4j")
+neo4j_password = ""  # Password Neo4j AURA
+neo4j_database = "neo4j"  # Database name (généralement "neo4j")

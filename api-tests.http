@@ -19,7 +19,7 @@
 @baseUrlData = https://faq9dl95v7.execute-api.eu-west-3.amazonaws.com/prod
 
 ### Token d'accès (à mettre à jour régulièrement)
-@accessToken = eyJraWQiOiIwekpSMTVhYjBqSk0xdnJmaFBSa0NveGJBaHhnXC9HblhkeU56Y09iRkRyND0iLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJmMWU5OTA3ZS01MDIxLTcwZmUtMzA4ZS0zMzc3NzgyYmE2NjgiLCJpc3MiOiJodHRwczpcL1wvY29nbml0by1pZHAuZXUtd2VzdC0zLmFtYXpvbmF3cy5jb21cL2V1LXdlc3QtM19GUURtaHhWMTQiLCJjbGllbnRfaWQiOiJwa3A0aTgyam50dHRoajJjYmlsdHVkZ3ZhIiwib3JpZ2luX2p0aSI6IjJjODBlYWJhLTgyM2YtNGRlMi1hMjI5LTYyMmMwN2Q4NDdmZCIsImV2ZW50X2lkIjoiMmUzYzU1NzUtZjg3Yi00NDIxLTkxNGUtMDEzMjBmMTFmOTJkIiwidG9rZW5fdXNlIjoiYWNjZXNzIiwic2NvcGUiOiJhd3MuY29nbml0by5zaWduaW4udXNlci5hZG1pbiIsImF1dGhfdGltZSI6MTc2NTEwOTIzNywiZXhwIjoxNzY1MTEyODM3LCJpYXQiOjE3NjUxMDkyMzcsImp0aSI6Ijk4Mjc3YjJmLTdhODctNDkyNS04MDg4LTEzM2ZlNjBhMjM3ZiIsInVzZXJuYW1lIjoiZjFlOTkwN2UtNTAyMS03MGZlLTMwOGUtMzM3Nzc4MmJhNjY4In0.w3R_1Pfj8k9bQlxa1-duYR9SugLQXl89zKPxT4Wcu9ph3-ZmJ29zV4pdSt2zNxPL2wh6pmttomD0I3dDg3BTQrqs4YcsJbhc23MNl4WaMZhtWu87gEUHLDfx7lYjQqMv53UNSgNaoHR502EbnmUfFwnUCVCTJbGfNRW_AsAO9YPZUyECxXVHAa5GtBrshYJv9XL-a_8jEEKu5Z7gvlTfM7YGbIQmq47XrzLa1yKUKt3SuKIqAiXj1uT88rD8Gv7AO4M0omzVaMqkuiOICNt0LQ96yjG_bmK52op42-XyTz4vA5wpcIKxTR5IDajucrDOHwWH_dpndtDtVEH0jHz4pA
+@accessToken = eyJraWQiOiIwekpSMTVhYjBqSk0xdnJmaFBSa0NveGJBaHhnXC9HblhkeU56Y09iRkRyND0iLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiI1MTI5ODBiZS0wMGQxLTcwZmYtNTQ3Zi0zYTA3YzkyMzA3ODIiLCJpc3MiOiJodHRwczpcL1wvY29nbml0by1pZHAuZXUtd2VzdC0zLmFtYXpvbmF3cy5jb21cL2V1LXdlc3QtM19GUURtaHhWMTQiLCJjbGllbnRfaWQiOiJwa3A0aTgyam50dHRoajJjYmlsdHVkZ3ZhIiwib3JpZ2luX2p0aSI6IjM2ZjBjMzBjLTAyYjItNDVlZC1iNDA1LWVmYmM3YjQyMTdmNyIsImV2ZW50X2lkIjoiNTUwY2M0ZGEtNmUxZi00NGQyLTg2ZDEtM2FkMGYxZWM4N2MyIiwidG9rZW5fdXNlIjoiYWNjZXNzIiwic2NvcGUiOiJhd3MuY29nbml0by5zaWduaW4udXNlci5hZG1pbiIsImF1dGhfdGltZSI6MTc2NTE5NjQ3NywiZXhwIjoxNzY1MjAwMDc3LCJpYXQiOjE3NjUxOTY0NzcsImp0aSI6ImEwZjNhMTNjLWNmZGYtNDc0OS04NDcwLTI5MzMwNGZiNjc3MiIsInVzZXJuYW1lIjoiNTEyOTgwYmUtMDBkMS03MGZmLTU0N2YtM2EwN2M5MjMwNzgyIn0.VT1cd4jJuuY5Z_J4Wh6bi37edFt3GLz6b31_4qYUIcPSNyCUdN7YAxiIQzFqWtfgFTYPrdp20cNtRFSpECmKi0jopwJiBGcinY8uwqEBhVQlBYceMAScesU8VmSF4Nl2ko82QMiyoVoYKWkv49COoDpd71UJl3ZFoh4BKaseRMgqL5f7rAp8l5GxjqMPTigOvC81aJBNdYMZmXmMcWv_cuvNxV2SiqjFbBSWm2uYHij2goJfLqC3QGSj97EZh6VYeF6U6mLKj6-4y3nDe8Mzj4cHqtGaIjpbuH71W06Yx9IDv4HJjXZXoRDTD6vVwKu8yCrJlj-4J7JXRABDyBANbQ
 
 @watchId = ff9dcbd4-1e0a-4e48-8604-854cdb5ac407"
 ### ============================================
@@ -240,7 +240,9 @@ Authorization: Bearer {{accessToken}}
 ### Ticker Options - Options
 GET {{baseUrlMain}}/ticker-activity/AAPL/options?limit=10
 Authorization: Bearer {{accessToken}}
-
+### Ticker Options - Options
+GET {{baseUrlMain}}/ticker-activity/NVDA/options?limit=10
+Authorization: Bearer {{accessToken}}
 ### Ticker Dark Pool - Dark pool
 GET {{baseUrlMain}}/ticker-activity/AAPL/dark-pool?limit=10
 Authorization: Bearer {{accessToken}}
@@ -461,12 +463,18 @@ Authorization: Bearer {{accessToken}}
 GET {{baseUrlMain}}/smart-money/top-hedge-funds?period=1Y
 Authorization: Bearer {{accessToken}}
 
-### Copy Trades - Berkshire Hathaway pour AAPL
+### Copy Trades - Berkshire Hathaway pour AAPL (par nom - peut ne pas fonctionner)
 GET {{baseUrlMain}}/smart-money/institution/Berkshire%20Hathaway/copy-trades/AAPL
 Authorization: Bearer {{accessToken}}
 
-### Copy Trades - BlackRock pour TSLA
+### Copy Trades - Berkshire Hathaway pour TSLA (par CIK - fonctionne)
+### CIK: 0001697748 (Berkshire Hathaway)
 GET {{baseUrlMain}}/smart-money/institution/0001697748/copy-trades/TSLA
+Authorization: Bearer {{accessToken}}
+
+### Copy Trades - BlackRock pour TSLA (par CIK)
+### CIK: 0001364742 (BlackRock)
+GET {{baseUrlMain}}/smart-money/institution/0001364742/copy-trades/TSLA
 Authorization: Bearer {{accessToken}}
 
 ### Copy Trades - Vanguard pour MSFT
@@ -498,8 +506,8 @@ Authorization: Bearer {{accessToken}}
 GET {{baseUrlMain}}/smart-money/top-hedge-funds
 Authorization: Bearer {{accessToken}}
 
-### Test 13: Vérifier que Copy Trades retourne des données
-GET {{baseUrlMain}}/smart-money/institution/Berkshire%20Hathaway/copy-trades/AAPL
+### Test 13: Vérifier que Copy Trades retourne des données (par CIK)
+GET {{baseUrlMain}}/smart-money/institution/0001649339/copy-trades/TSLA
 Authorization: Bearer {{accessToken}}
 
 ### Test 14: Vérifier que Sector Rotation retourne des données
@@ -510,6 +518,199 @@ Authorization: Bearer {{accessToken}}
 GET {{baseUrlMain}}/market-analysis/market-tide
 Authorization: Bearer {{accessToken}}
 
+### TEST 16: CALENDAR
+
+GET https://tsdd1sibd1.execute-api.eu-west-3.amazonaws.com/prod/economic-calendar?from=2025-12-07&to=2026-01-06
+Authorization: Bearer {{accessToken}}
+
+### Test 17: Vérifier que 13F Filings retourne des données
+GET {{baseUrlMain}}/13f-filings/latest
+Authorization: Bearer {{accessToken}}
+
+### Test 17b: 13F Filings avec période spécifique
+GET {{baseUrlMain}}/13f-filings/latest?from=2025-09-07&to=2025-12-07&limit=50
+Authorization: Bearer {{accessToken}}
+
+### Test 18: Vérifier que 13F Filings retourne des données avec des paramètres
+
+POST {{baseUrlMain}}/attribution/flow
+Authorization: Bearer {{accessToken}}
+
+### Test 19: Vérifier que Attribution Institution retourne des données
+GET {{baseUrlMain}}/attribution/institution/{institutionId}/ticker/{ticker} — Attribuer l'influence d'une institution
+Authorization: Bearer {{accessToken}}
+
+
+### Test 20: Vérifier que Attribution Dominant Entities retourne des données
+GET {{baseUrlMain}}/attribution/dominant-entities/{ticker} — Trouver les entités dominantes
+Authorization: Bearer {{accessToken}}
+
+### Test 20: Vérifier que Attribution Clusters retourne des données
+GET {{baseUrlMain}}/attribution/clusters 
+Authorization: Bearer {{accessToken}}
+
+### Test 21: Attribution Clusters avec secteur spécifique
+GET {{baseUrlMain}}/attribution/clusters?sector=Technology
+Authorization: Bearer {{accessToken}}
+
+### ============================================
+### 13F FILINGS - Transactions et Holdings
+### ============================================
+### ⚠️ API Gateway 2 (Données Brutes) - Mettre à jour @baseUrlData après terraform apply
+
+### Holdings d'une Institution (BlackRock) - Visualiser les transactions
+### CIK: 0001364742 (BlackRock)
+GET {{baseUrlData}}/unusual-whales/institution/0001364742/holdings?date=2025-09-30&limit=100&order=value&order_direction=desc
+Authorization: Bearer {{accessToken}}
+
+### Holdings d'une Institution (Vanguard) - Visualiser les transactions
+### CIK: 0000102909 (Vanguard)
+GET {{baseUrlData}}/unusual-whales/institution/0000102909/holdings?date=2025-09-30&limit=100&order=units_change&order_direction=desc
+Authorization: Bearer {{accessToken}}
+
+### Holdings d'une Institution avec période (comparaison)
+### Permet de comparer les positions entre deux dates
+GET {{baseUrlData}}/unusual-whales/institution/0001364742/holdings?start_date=2025-06-30&end_date=2025-09-30&limit=100&order=units_change&order_direction=desc
+Authorization: Bearer {{accessToken}}
+
+### Activité de Trading d'une Institution (BlackRock)
+### Retourne les activités récentes avec buy_price, sell_price
+GET {{baseUrlData}}/unusual-whales/institution/0001364742/activity?limit=100&date=2025-09-30
+Authorization: Bearer {{accessToken}}
+
+### Activité de Trading d'une Institution (Berkshire Hathaway)
+### CIK: 0001697748 (Berkshire Hathaway)
+GET {{baseUrlData}}/unusual-whales/institution/0001697748/activity?limit=100&date=2025-09-30
+Authorization: Bearer {{accessToken}}
+
+### ============================================
+### HEATMAP OPTIONS - Strike × Expiration
+### ============================================
+
+### Options Flow (50 flows récents pour heatmap)
+### À agréger côté frontend par strike et expiry
+GET {{baseUrlMain}}/ticker-activity/AAPL/options?limit=50&min_premium=10000
+Authorization: Bearer {{accessToken}}
+
+### Options Flow (NVDA - 50 flows pour heatmap)
+GET {{baseUrlMain}}/ticker-activity/NVDA/options?limit=50&min_premium=50000
+Authorization: Bearer {{accessToken}}
+
+### Flow par Strike (agrégé - 1D heatmap)
+GET {{baseUrlData}}/unusual-whales/stock/AAPL/flow-per-strike?date=2025-12-07
+Authorization: Bearer {{accessToken}}
+
+### Flow par Expiry (agrégé - 1D heatmap)
+GET {{baseUrlData}}/unusual-whales/stock/AAPL/flow-per-expiry
+Authorization: Bearer {{accessToken}}
+
+### Flow per Strike Intraday (avec filtre)
+GET {{baseUrlData}}/unusual-whales/stock/AAPL/flow-per-strike-intraday?date=2025-12-07&filter=NetPremium
+Authorization: Bearer {{accessToken}}
+
+### ============================================
+### ATTRIBUTION ENGINE - Fonctionnalités Avancées Arkham-Level
+### ============================================
+### ✅ API Gateway 1 (Application Principale)
+
+### Test Flow Signature Matching (intégré dans /attribution/flow)
+### Ce flow devrait maintenant matcher avec les patterns historiques de JPMorgan
+POST {{baseUrlMain}}/attribution/flow
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "ticker": "NVDA",
+  "flowType": "CALL",
+  "premium": 2000000,
+  "strike": 550,
+  "expiry": "2026-01-15",
+  "timestamp": "2025-12-07T10:00:00Z"
+}
+
+### Test Flow Signature Matching - PUT flow
+POST {{baseUrlMain}}/attribution/flow
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "ticker": "TSLA",
+  "flowType": "PUT",
+  "premium": 1500000,
+  "strike": 250,
+  "expiry": "2026-02-20",
+  "timestamp": "2025-12-07T10:00:00Z"
+}
+
+### Test Insider Registry (intégré dans /attribution/flow)
+### Les insiders devraient maintenant être enrichis avec leur rôle (CEO, CFO, etc.)
+POST {{baseUrlMain}}/attribution/flow
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "ticker": "AAPL",
+  "flowType": "CALL",
+  "premium": 1000000,
+  "strike": 200,
+  "expiry": "2026-01-20",
+  "timestamp": "2025-12-07T10:00:00Z"
+}
+
+### Test Centralité Avancée (intégré dans /attribution/institution)
+### Les métriques devraient maintenant inclure PageRank, Betweenness, etc.
+GET {{baseUrlMain}}/attribution/institution/0001364742/ticker/NVDA?period=3M
+Authorization: Bearer {{accessToken}}
+
+### Test Centralité Avancée - BlackRock pour AAPL
+GET {{baseUrlMain}}/attribution/institution/0001364742/ticker/AAPL?period=3M
+Authorization: Bearer {{accessToken}}
+
+### Test Dominant Entities avec nouvelles fonctionnalités
+### Devrait maintenant inclure : flotShare, positionDelta, accumulationTempo, graphCentrality
+GET {{baseUrlMain}}/attribution/dominant-entities/NVDA
+Authorization: Bearer {{accessToken}}
+
+### Test Dominant Entities - TSLA
+GET {{baseUrlMain}}/attribution/dominant-entities/TSLA
+Authorization: Bearer {{accessToken}}
+
+### Test Dominant Entities - AAPL
+GET {{baseUrlMain}}/attribution/dominant-entities/AAPL
+Authorization: Bearer {{accessToken}}
+
+### Test Conflict Engine (intégré dans /attribution/flow)
+### Devrait détecter les entités opposées (short interest, PUT flows, dark pool bearish)
+POST {{baseUrlMain}}/attribution/flow
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "ticker": "NVDA",
+  "flowType": "CALL",
+  "premium": 3000000,
+  "strike": 500,
+  "expiry": "2026-01-15",
+  "timestamp": "2025-12-07T10:00:00Z"
+}
+
+### Test Sector Clustering (via /attribution/clusters)
+### Devrait détecter les clusters d'institutions par secteur
+GET {{baseUrlMain}}/attribution/clusters?sector=Technology
+Authorization: Bearer {{accessToken}}
+
+### Test Sector Clustering - Healthcare
+GET {{baseUrlMain}}/attribution/clusters?sector=Healthcare
+Authorization: Bearer {{accessToken}}
+
+### Test Sector Clustering - Tous secteurs
+GET {{baseUrlMain}}/attribution/clusters
+Authorization: Bearer {{accessToken}}
+
+### test 2
+GET {{baseUrlData}}/unusual-whales/institution/0001103887/holdings
+Authorization: Bearer {{accessToken}}
+##
 ### ============================================
 ### NOTES
 ### ============================================
@@ -559,8 +760,66 @@ Authorization: Bearer {{accessToken}}
 ###    - totalHoldings = 0 (pas de holdings)
 ###    - averagePE = 0 (PE non calculé)
 ###
+### ============================================
+### ATTRIBUTION ENGINE
+### ============================================
+
+### Test connexion Neo4j
+GET {{baseUrlMain}}/graph/test-connection
+Authorization: Bearer {{accessToken}}
+
+### 
+GET {{baseUrlData}}/unusual-whales/institution/0001103887/holdings?date=2025-12-05&limit=100&order=value&order_direction=desc
+Authorization: Bearer {{accessToken}}
+###
+
+### Attribuer un flow options à des entités
+POST {{baseUrlMain}}/attribution/flow
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "ticker": "NVDA",
+  "flowType": "CALL",
+  "premium": 2000000,
+  "strike": 500,
+  "expiry": "2026-01-15",
+  "timestamp": "2025-12-07T10:00:00Z"
+}
+
+###
+
+### Attribuer l'influence d'une institution sur un ticker
+GET {{baseUrlMain}}/attribution/institution/0001364742/ticker/NVDA?period=3M
+Authorization: Bearer {{accessToken}}
+
+###
+
+### Trouver les entités dominantes pour un ticker
+GET {{baseUrlMain}}/attribution/dominant-entities/NVDA
+Authorization: Bearer {{accessToken}}
+
+###
+
+### Clustering institutionnel
+GET {{baseUrlMain}}/attribution/clusters?sector=Technology
+Authorization: Bearer {{accessToken}}
+
+###
 ### 🔍 IDENTIFICATION RAPIDE
 ### - Si la route commence par /fmp/ ou /unusual-whales/ → @baseUrlData
 ### - Sinon → @baseUrlMain
+###
+### 📝 INSTITUTIONS (Smart Money / Copy Trades)
+### L'API Unusual Whales accepte à la fois les noms d'institutions et les CIK.
+### Pour certaines institutions, le CIK est plus fiable que le nom.
+### 
+### Exemples de CIK :
+### - Berkshire Hathaway: 0001697748
+### - BlackRock: 0001364742
+### - Vanguard: 0000102909
+###
+### Si une requête avec un nom d'institution retourne une erreur 500,
+### essayez d'utiliser le CIK à la place.
 ###
 

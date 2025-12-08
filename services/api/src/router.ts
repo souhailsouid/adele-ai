@@ -32,6 +32,7 @@ import { gammaSqueezeRoutes } from "./routes/gamma-squeeze.routes";
 import { surveillanceRoutes } from "./routes/surveillance.routes";
 import { alertRoutes } from "./routes/alert.routes";
 import { smartMoneyRoutes } from "./routes/smart-money.routes";
+import { attributionRoutes } from "./routes/attribution.routes";
 import { getCombinedEconomicCalendar } from "./economic-calendar";
 import { getLatest13FFilings } from "./13f-filings";
 import type { NotificationType } from "./types/unusual-whales/alerts";
@@ -498,6 +499,8 @@ const routes: Route[] = [
       ...alertRoutes,
       // ========== Smart Money Routes ==========
       ...smartMoneyRoutes,
+      // ========== Attribution Routes ==========
+      ...attributionRoutes,
       // ========== Unusual Whales API Routes ==========
       {
         method: "GET",

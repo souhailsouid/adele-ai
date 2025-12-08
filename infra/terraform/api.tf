@@ -47,6 +47,10 @@ resource "aws_lambda_function" "api" {
       OPENAI_API_KEY         = var.openai_api_key
       UNUSUAL_WHALES_API_KEY = var.unusual_whales_api_key
       FMP_API_KEY            = var.fmp_api_key
+      NEO4J_URI              = var.neo4j_uri
+      NEO4J_USERNAME         = var.neo4j_username
+      NEO4J_PASSWORD         = var.neo4j_password
+      NEO4J_DATABASE         = var.neo4j_database
     }
   }
 }
@@ -257,6 +261,24 @@ resource "aws_apigatewayv2_route" "get_ticker_insiders" {
 resource "aws_apigatewayv2_route" "get_ticker_congress" {
   api_id             = aws_apigatewayv2_api.http.id
   route_key          = "GET /ticker-activity/{ticker}/congress"
+  target             = "integrations/${aws_apigatewayv2_integration.api_lambda.id}"
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.jwt.id
+}
+
+# Economic Calendar (alias pour /fmp/economics/calendar)
+resource "aws_apigatewayv2_route" "get_economic_calendar" {
+  api_id             = aws_apigatewayv2_api.http.id
+  route_key          = "GET /economic-calendar"
+  target             = "integrations/${aws_apigatewayv2_integration.api_lambda.id}"
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.jwt.id
+}
+
+# Latest 13F Filings (combine FMP + UW)
+resource "aws_apigatewayv2_route" "get_13f_filings_latest" {
+  api_id             = aws_apigatewayv2_api.http.id
+  route_key          = "GET /13f-filings/latest"
   target             = "integrations/${aws_apigatewayv2_integration.api_lambda.id}"
   authorization_type = "JWT"
   authorizer_id      = aws_apigatewayv2_authorizer.jwt.id
